@@ -610,6 +610,101 @@ body {
     }
 }
 
+@media (max-width: 600px) {
+    body {
+        padding: 0 4vw;
+        font-size: 1.05em;
+    }
+    .school-card {
+        margin: 1.2em 0;
+        padding: 1.2em 1em;
+        border-radius: 1.2em;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    }
+    .school-content {
+        padding: 0.5em 0;
+    }
+    .school-name {
+        font-size: 1.2em;
+        margin-bottom: 0.2em;
+    }
+    .school-location, .school-category, .school-rating {
+        font-size: 1em;
+    }
+    .school-rating span {
+        font-size: 1em;
+    }
+    .school-image {
+        font-size: 2.2em;
+        margin-bottom: 0.5em;
+    }
+    .modal {
+        width: 95vw;
+        left: 2.5vw;
+        right: 2.5vw;
+        padding: 1.2em 0.7em;
+    }
+    .header, .footer {
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+    }
+    .footer {
+        font-size: 0.95em;
+    }
+    .btn, button, input[type="submit"] {
+        font-size: 1.1em;
+        padding: 0.8em 1.2em;
+        border-radius: 0.7em;
+    }
+    .search-bar, .search-bar input, .search-bar select {
+        font-size: 1em;
+        padding: 0.7em 0.8em;
+    }
+    .leaflet-container {
+        min-height: 250px;
+        border-radius: 1em;
+    }
+    .no-results, .error {
+        font-size: 1.1em;
+        padding: 1em 0.5em;
+    }
+    .school-card .school-content {
+        align-items: flex-start;
+    }
+    .school-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .school-card .school-image {
+        align-self: center;
+    }
+    .school-card .school-category {
+        margin-top: 0.5em;
+    }
+    .school-card .school-rating {
+        margin-bottom: 0.5em;
+    }
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .header nav {
+        margin-top: 0.5em;
+        width: 100%;
+        justify-content: flex-start;
+    }
+    .header nav a {
+        margin-right: 1em;
+        font-size: 1.1em;
+    }
+    .user-info, .auth-buttons {
+        margin-top: 0.7em;
+    }
+    .map {
+        margin-bottom: 1.5em;
+    }
+}
+
 /* Animations */
 @keyframes fadeIn {
     from {
