@@ -612,96 +612,312 @@ body {
 
 @media (max-width: 600px) {
     body {
-        padding: 0 4vw;
-        font-size: 1.05em;
+        padding: 0 2vw;
+        font-size: 1.08em;
+        background: #f8f9fb;
+    }
+    .header {
+        padding: 1.2em 0.7em 0.7em 0.7em;
+        border-radius: 0 0 1.2em 1.2em;
+        box-shadow: 0 2px 12px rgba(80,80,120,0.07);
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        flex-direction: column;
+        align-items: flex-start;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+    .header nav {
+        margin-top: 0.7em;
+        width: 100%;
+        justify-content: flex-start;
+    }
+    .header nav a {
+        margin-right: 1.2em;
+        font-size: 1.13em;
+        color: #fff;
+    }
+    .user-info, .auth-buttons {
+        margin-top: 0.7em;
+    }
+    .section-title, h2, h3 {
+        font-size: 1.35em;
+        font-weight: 700;
+        margin: 1.5em 0 0.7em 0;
+        letter-spacing: 0.01em;
     }
     .school-card {
-        margin: 1.2em 0;
-        padding: 1.2em 1em;
-        border-radius: 1.2em;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+        margin: 1.3em 0;
+        padding: 1.3em 1em 1.1em 1em;
+        border-radius: 1.3em;
+        box-shadow: 0 4px 18px rgba(80,80,120,0.09);
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        transition: box-shadow 0.2s;
+    }
+    .school-card:active {
+        box-shadow: 0 2px 8px rgba(80,80,120,0.13);
     }
     .school-content {
-        padding: 0.5em 0;
+        padding: 0.6em 0;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
     }
     .school-name {
-        font-size: 1.2em;
-        margin-bottom: 0.2em;
+        font-size: 1.18em;
+        margin-bottom: 0.18em;
+        font-weight: 600;
     }
     .school-location, .school-category, .school-rating {
         font-size: 1em;
+        margin-bottom: 0.2em;
     }
     .school-rating span {
         font-size: 1em;
     }
     .school-image {
-        font-size: 2.2em;
+        font-size: 2.3em;
         margin-bottom: 0.5em;
-    }
-    .modal {
-        width: 95vw;
-        left: 2.5vw;
-        right: 2.5vw;
-        padding: 1.2em 0.7em;
-    }
-    .header, .footer {
-        padding-left: 0.5em;
-        padding-right: 0.5em;
-    }
-    .footer {
-        font-size: 0.95em;
+        align-self: center;
     }
     .btn, button, input[type="submit"] {
-        font-size: 1.1em;
-        padding: 0.8em 1.2em;
-        border-radius: 0.7em;
+        font-size: 1.13em;
+        padding: 0.9em 1.3em;
+        border-radius: 0.8em;
+        margin: 0.5em 0;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        border: none;
+        box-shadow: 0 2px 8px rgba(80,80,120,0.07);
+        font-weight: 600;
+    }
+    .btn:active, button:active, input[type="submit"]:active {
+        background: linear-gradient(90deg, #5a67d8 0%, #6b47a1 100%);
     }
     .search-bar, .search-bar input, .search-bar select {
         font-size: 1em;
-        padding: 0.7em 0.8em;
+        padding: 0.8em 0.9em;
+        border-radius: 0.7em;
+        margin-bottom: 0.7em;
+        border: 1px solid #e2e8f0;
+        background: #fff;
     }
     .leaflet-container {
-        min-height: 250px;
-        border-radius: 1em;
+        min-height: 220px;
+        border-radius: 1.1em;
+        margin-bottom: 1.2em;
     }
     .no-results, .error {
-        font-size: 1.1em;
-        padding: 1em 0.5em;
+        font-size: 1.13em;
+        padding: 1.1em 0.6em;
+        color: #b83232;
+        background: #fff0f0;
+        border-radius: 0.7em;
     }
-    .school-card .school-content {
-        align-items: flex-start;
+    .modal {
+        width: 97vw;
+        left: 1.5vw;
+        right: 1.5vw;
+        padding: 1.3em 0.8em;
+        border-radius: 1.1em;
     }
-    .school-card {
-        flex-direction: column;
-        align-items: stretch;
+    .footer {
+        font-size: 1em;
+        padding: 1.2em 0.7em;
+        background: #23232b;
+        color: #fff;
+        border-radius: 1.2em 1.2em 0 0;
+        margin-top: 2em;
     }
-    .school-card .school-image {
-        align-self: center;
+    .footer .quick-links, .footer .contact {
+        margin-bottom: 1.1em;
     }
-    .school-card .school-category {
-        margin-top: 0.5em;
+    .footer .quick-links a, .footer .contact a {
+        color: #fff;
+        text-decoration: underline;
+        font-size: 1.05em;
     }
-    .school-card .school-rating {
+    .footer .footer-title {
+        font-size: 1.13em;
+        font-weight: 700;
         margin-bottom: 0.5em;
     }
-    .header {
-        flex-direction: column;
-        align-items: flex-start;
+    .footer .footer-section {
+        margin-bottom: 1.2em;
     }
-    .header nav {
-        margin-top: 0.5em;
-        width: 100%;
-        justify-content: flex-start;
+    .footer .footer-section:last-child {
+        margin-bottom: 0;
     }
-    .header nav a {
-        margin-right: 1em;
-        font-size: 1.1em;
+    .footer .footer-title, .footer .footer-section {
+        text-align: left;
     }
-    .user-info, .auth-buttons {
-        margin-top: 0.7em;
+    .footer .footer-section p, .footer .footer-section a {
+        margin-bottom: 0.3em;
     }
-    .map {
-        margin-bottom: 1.5em;
+    .footer .footer-section a {
+        display: block;
+    }
+    .footer .footer-section:last-child {
+        margin-bottom: 0;
+    }
+    .footer .footer-title {
+        color: #ffe066;
+    }
+    .footer .footer-section strong {
+        color: #ffe066;
+    }
+    .footer .footer-section {
+        color: #fff;
+    }
+    .footer .footer-section.contact {
+        margin-top: 1.2em;
+    }
+    .footer .footer-section.contact strong {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact a {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact p {
+        color: #fff;
+    }
+    .footer .footer-section.contact {
+        font-size: 1.05em;
+    }
+    .footer .footer-section.contact .footer-title {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact strong {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact a {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact p {
+        color: #fff;
+    }
+    .footer .footer-section.contact {
+        font-size: 1.05em;
+    }
+    .footer .footer-section.contact .footer-title {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact strong {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact a {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact p {
+        color: #fff;
+    }
+    .footer .footer-section.contact {
+        font-size: 1.05em;
+    }
+    .footer .footer-section.contact .footer-title {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact strong {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact a {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact p {
+        color: #fff;
+    }
+    .footer .footer-section.contact {
+        font-size: 1.05em;
+    }
+    .footer .footer-section.contact .footer-title {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact strong {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact a {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact p {
+        color: #fff;
+    }
+    .footer .footer-section.contact {
+        font-size: 1.05em;
+    }
+    .footer .footer-section.contact .footer-title {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact strong {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact a {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact p {
+        color: #fff;
+    }
+    .footer .footer-section.contact {
+        font-size: 1.05em;
+    }
+    .footer .footer-section.contact .footer-title {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact strong {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact a {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact p {
+        color: #fff;
+    }
+    .footer .footer-section.contact {
+        font-size: 1.05em;
+    }
+    .footer .footer-section.contact .footer-title {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact strong {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact a {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact p {
+        color: #fff;
+    }
+    .footer .footer-section.contact {
+        font-size: 1.05em;
+    }
+    .footer .footer-section.contact .footer-title {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact strong {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact a {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact p {
+        color: #fff;
+    }
+    .footer .footer-section.contact {
+        font-size: 1.05em;
+    }
+    .footer .footer-section.contact .footer-title {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact strong {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact a {
+        color: #ffe066;
+    }
+    .footer .footer-section.contact p {
+        color: #fff;
     }
 }
 
