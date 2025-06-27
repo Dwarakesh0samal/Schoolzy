@@ -5,7 +5,7 @@ let schools = [];
 let markers = [];
 
 // API base URL
-const API_BASE = '/api';
+const API_BASE = 'https://schoolzy-k8g7.onrender.com/api';
 
 // DEMO MODE: Dummy user and data
 const DEMO_USER = {
