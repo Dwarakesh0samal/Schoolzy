@@ -27,32 +27,32 @@ router.put('/profile', auth, upload.single('profile_picture'), userController.up
 router.delete('/account', auth, userController.deleteAccount);
 
 // Logout
-router.get('/logout', (req, res) => {
-  req.logout((err) => {
-    if (err) {
-      return res.status(500).json({ message: 'Error logging out.' });
-    }
-    res.json({ message: 'Logged out successfully.' });
-  });
-});
+// router.get('/logout', (req, res) => {
+//   req.logout((err) => {
+//     if (err) {
+//       return res.status(500).json({ message: 'Error logging out.' });
+//     }
+//     res.json({ message: 'Logged out successfully.' });
+//   });
+// });
 
 // Check authentication status
-router.get('/status', (req, res) => {
-  if (req.isAuthenticated()) {
-    res.json({
-      authenticated: true,
-      user: {
-        id: req.user.id,
-        name: req.user.name,
-        email: req.user.email,
-        profile_picture: req.user.profile_picture,
-        role: req.user.role
-      }
-    });
-  } else {
-    res.json({ authenticated: false });
-  }
-});
+// router.get('/status', (req, res) => {
+//   if (req.isAuthenticated()) {
+//     res.json({
+//       authenticated: true,
+//       user: {
+//         id: req.user.id,
+//         name: req.user.name,
+//         email: req.user.email,
+//         profile_picture: req.user.profile_picture,
+//         role: req.user.role
+//       }
+//     });
+//   } else {
+//     res.json({ authenticated: false });
+//   }
+// });
 
 // Get current user info (for frontend after login)
 router.get('/me', auth, (req, res) => {
