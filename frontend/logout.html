@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logout - Schoolzy</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo"><i class="fas fa-graduation-cap"></i> <span>Schoolzy</span></a>
+    </div>
+  </nav>
+  <main class="main-centered">
+    <div class="modal-content" style="margin-top: 60px;">
+      <h2>Confirm Logout</h2>
+      <p>Are you sure you want to log out?</p>
+      <button class="btn btn-primary" id="confirm-logout-btn">Logout</button>
+      <button class="btn btn-outline" id="cancel-logout-btn">Cancel</button>
+      <a href="index.html" class="btn btn-outline" style="margin-top:1rem;">Back to Home</a>
+    </div>
+  </main>
+  <script src="app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = 'index.html';
+        return;
+      }
+      try {
+        const res = await fetch('/api/auth/status');
+        const data = await res.json();
+        if (!data.authenticated) {
+          window.location.href = 'index.html';
+        }
+      } catch (err) {
+        window.location.href = 'index.html';
+      }
+    });
+    document.getElementById('confirm-logout-btn').onclick = function() {
+      let msg = document.getElementById('logout-msg');
+      if (!msg) {
+        msg = document.createElement('div');
+        msg.id = 'logout-msg';
+        msg.style.marginTop = '1rem';
+        msg.style.fontWeight = 'bold';
+        document.querySelector('.modal-content').appendChild(msg);
+      }
+      msg.textContent = 'Logged out successfully!';
+      msg.style.color = '#4caf50';
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+    };
+    document.getElementById('cancel-logout-btn').onclick = function() {
+      window.location.href = 'index.html';
+    };
+  </script>
+</body>
+</html> 
