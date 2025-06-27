@@ -7,13 +7,6 @@ let markers = [];
 // API base URL
 const API_BASE = 'https://schoolzy-k8g7.onrender.com/api';
 
-// DEMO MODE: Dummy user and data
-const DEMO_USER = {
-  name: 'Demo User',
-  email: 'demo@schoolzy.com',
-  profile_picture: 'https://via.placeholder.com/32x32/667eea/ffffff?text=D',
-};
-
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
@@ -92,7 +85,6 @@ async function checkAuthStatus() {
         }
     }
     updateUIForUnauthenticatedUser();
-    showDemoLoginModal();
 }
 
 function updateUIForAuthenticatedUser() {
@@ -107,9 +99,27 @@ function updateUIForAuthenticatedUser() {
     } else {
         userAvatar.src = 'https://via.placeholder.com/32x32/667eea/ffffff?text=' + currentUser.name.charAt(0);
     }
-    // Attach avatar click event for dropdown
     userAvatar.onclick = toggleProfileDropdown;
-    // Show map section, hide schools and prompt until location is entered
+    // Show admin dashboard link if user is admin
+    const dropdown = document.getElementById('profile-dropdown');
+    let adminLink = document.getElementById('admin-dashboard-btn');
+    if (currentUser.role === 'admin') {
+        if (!adminLink) {
+            adminLink = document.createElement('button');
+            adminLink.id = 'admin-dashboard-btn';
+            adminLink.className = 'dropdown-item';
+            adminLink.textContent = 'Admin Dashboard';
+            adminLink.onclick = function(e) {
+                e.stopPropagation();
+                window.location.href = '/admin-dashboard.html';
+            };
+            dropdown.insertBefore(adminLink, dropdown.firstChild);
+        } else {
+            adminLink.classList.remove('hidden');
+        }
+    } else if (adminLink) {
+        adminLink.classList.add('hidden');
+    }
     document.getElementById('map').classList.remove('hidden');
     document.getElementById('schools').classList.add('hidden');
     document.getElementById('prompt-section').classList.add('hidden');
@@ -119,7 +129,9 @@ function updateUIForUnauthenticatedUser() {
     document.getElementById('auth-buttons').classList.remove('hidden');
     document.getElementById('user-info').classList.add('hidden');
     currentUser = null;
-    // Hide schools/map, show prompt
+    // Hide admin dashboard link if present
+    const adminLink = document.getElementById('admin-dashboard-btn');
+    if (adminLink) adminLink.classList.add('hidden');
     document.getElementById('schools').classList.add('hidden');
     document.getElementById('map').classList.add('hidden');
     document.getElementById('prompt-section').classList.remove('hidden');
@@ -258,16 +270,6 @@ function initializeMap() {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
-    
-    // Demo markers
-    const demoMarkers = [
-        { lat: 20.2961, lng: 85.8245, name: 'Bhubaneswar Public School' },
-        { lat: 20.3000, lng: 85.8200, name: 'DAV School' },
-        { lat: 20.3100, lng: 85.8300, name: 'KIIT International School' },
-    ];
-    demoMarkers.forEach(school => {
-        L.marker([school.lat, school.lng]).addTo(map).bindPopup(`<b>${school.name}</b>`);
-    });
 }
 
 async function loadSchoolsOnMap() {
@@ -818,50 +820,4 @@ window.addEventListener('click', function(e) {
     if (e.target.classList && e.target.classList.contains('profile-avatar-btn')) {
         toggleProfileDropdown();
     }
-});
-
-function showDemoLoginModal() {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'flex';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <h2>Demo Login</h2>
-            <p>Click below to log in as a demo user.</p>
-            <button id="demo-login-btn" class="btn btn-primary">Log In as Demo User</button>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    document.getElementById('demo-login-btn').onclick = async function() {
-        try {
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: 'demo@schoolzy.com', password: 'demopasswordnow' })
-            });
-            const data = await response.json();
-            console.log('Demo login response:', data);
-            if (response.ok && data.token) {
-                localStorage.setItem('token', data.token);
-                try {
-                    const userRes = await fetch('/api/auth/me', {
-                        headers: { 'Authorization': `Bearer ${data.token}` }
-                    });
-                    const user = await userRes.json();
-                    console.log('Fetched user:', user);
-                    localStorage.setItem('user', JSON.stringify(user));
-                    modal.remove();
-                    location.reload();
-                } catch (err) {
-                    console.error('Error fetching user info:', err);
-                    alert('Failed to fetch user info.');
-                }
-            } else {
-                alert(data.message || 'Demo login failed.');
-            }
-        } catch (err) {
-            console.error('Demo login error:', err);
-            alert('Demo login failed.');
-        }
-    };
-} 
+}); 
