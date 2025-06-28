@@ -13,7 +13,8 @@ const sampleSchools = [
     website: "www.stmarys.edu",
     averageRating: 4.5,
     reviewCount: 23,
-    coordinates: { lat: 20.2961, lng: 85.8245 },
+    latitude: 20.2961,
+    longitude: 85.8245,
     facilities: ["Library", "Computer Lab", "Sports Ground", "Science Lab"],
     established: 1995
   },
@@ -29,7 +30,8 @@ const sampleSchools = [
     website: "www.dpsbbsr.edu",
     averageRating: 4.2,
     reviewCount: 18,
-    coordinates: { lat: 20.2961, lng: 85.8245 },
+    latitude: 20.3000,
+    longitude: 85.8200,
     facilities: ["Smart Classrooms", "Auditorium", "Cafeteria", "Transport"],
     established: 2000
   },
@@ -45,7 +47,8 @@ const sampleSchools = [
     website: "www.kv1bbsr.edu",
     averageRating: 3.8,
     reviewCount: 15,
-    coordinates: { lat: 20.2961, lng: 85.8245 },
+    latitude: 20.3100,
+    longitude: 85.8300,
     facilities: ["Library", "Playground", "Computer Lab"],
     established: 1985
   },
@@ -61,7 +64,8 @@ const sampleSchools = [
     website: "www.motherspublic.edu",
     averageRating: 4.0,
     reviewCount: 12,
-    coordinates: { lat: 20.2961, lng: 85.8245 },
+    latitude: 20.2900,
+    longitude: 85.8100,
     facilities: ["Activity Room", "Garden", "Transport", "Medical Room"],
     established: 1990
   },
@@ -77,7 +81,8 @@ const sampleSchools = [
     website: "www.davbbsr.edu",
     averageRating: 4.3,
     reviewCount: 20,
-    coordinates: { lat: 20.2961, lng: 85.8245 },
+    latitude: 20.3050,
+    longitude: 85.8150,
     facilities: ["Library", "Science Labs", "Sports Complex", "Cafeteria"],
     established: 1992
   }

@@ -56,6 +56,12 @@ async function initializeApp() {
     await checkAuthStatus();
     loadSchools();
     initializeMap();
+    
+    // Load schools on map if user is authenticated
+    if (currentUser) {
+        await loadSchoolsOnMap();
+    }
+    
     setupEventListeners();
 }
 
@@ -123,6 +129,9 @@ function updateUIForAuthenticatedUser() {
     document.getElementById('map').classList.remove('hidden');
     document.getElementById('schools').classList.add('hidden');
     document.getElementById('prompt-section').classList.add('hidden');
+    
+    // Load schools on map after authentication
+    loadSchoolsOnMap();
 }
 
 function updateUIForUnauthenticatedUser() {
@@ -272,10 +281,33 @@ function initializeMap() {
     }).addTo(map);
 }
 
+// Helper function to clear map error messages
+function clearMapMessages() {
+    const mapContainer = document.getElementById('map-container');
+    if (mapContainer) {
+        const existingMessages = mapContainer.querySelectorAll('.map-error, .map-no-schools');
+        existingMessages.forEach(msg => msg.remove());
+    }
+}
+
 async function loadSchoolsOnMap() {
+    // Clear any existing error messages
+    clearMapMessages();
+    
     try {
+        console.log('Loading schools on map...');
         const response = await fetch(`${API_BASE}/schools`);
-        const schoolsData = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Handle the API response structure (schools array or paginated response)
+        const schoolsData = data.schools || data || [];
+        
+        console.log(`Loaded ${schoolsData.length} schools for map`);
         
         // Clear existing markers
         markers.forEach(marker => map.removeLayer(marker));
@@ -291,8 +323,8 @@ async function loadSchoolsOnMap() {
                             <h3>${school.name}</h3>
                             <p>${school.location}</p>
                             <img src="${school.image_url || ''}" alt="School Image" style="max-width:150px;max-height:80px;" />
-                            <p>Rating: ${(school.rating || 0).toFixed(1)} ⭐</p>
-                            <button onclick="showSchoolDetails(${school.id})" class="btn btn-primary btn-sm">View Details</button>
+                            <p>Rating: ${(school.averageRating || 0).toFixed(1)} ⭐</p>
+                            <button onclick="showSchoolDetails('${school.id}')" class="btn btn-primary btn-sm">View Details</button>
                         </div>
                     `);
                 marker.addTo(map);
@@ -300,12 +332,38 @@ async function loadSchoolsOnMap() {
                 bounds.push([school.latitude, school.longitude]);
             }
         });
+        
         // Fit map to markers if any
         if (bounds.length > 0) {
             map.fitBounds(bounds, { padding: [50, 50] });
+            console.log('Map fitted to school markers');
+        } else {
+            console.log('No schools with coordinates found');
+            // Show a message to the user
+            const mapContainer = document.getElementById('map-container');
+            if (mapContainer) {
+                const noSchoolsMsg = document.createElement('div');
+                noSchoolsMsg.className = 'map-no-schools';
+                noSchoolsMsg.innerHTML = '<p>No schools found with location data. Try searching for a specific city.</p>';
+                noSchoolsMsg.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000;';
+                mapContainer.appendChild(noSchoolsMsg);
+            }
         }
     } catch (error) {
         console.error('Error loading schools on map:', error);
+        
+        // Show user-friendly error message
+        const mapContainer = document.getElementById('map-container');
+        if (mapContainer) {
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'map-error';
+            errorMsg.innerHTML = `
+                <p>Error loading schools on map</p>
+                <p style="font-size: 0.9em; color: #666;">Please try refreshing the page or contact support if the problem persists.</p>
+            `;
+            errorMsg.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; text-align: center;';
+            mapContainer.appendChild(errorMsg);
+        }
     }
 }
 
@@ -474,12 +532,16 @@ async function handleLogin(e) {
             const userRes = await fetch(`${API_BASE}/auth/me`, {
                 headers: { 'Authorization': `Bearer ${data.token}` }
             });
-            const user = await userRes.json();
-            currentUser = user;
-            localStorage.setItem('user', JSON.stringify(user));
-            updateUIForAuthenticatedUser();
-            hideModal('login-modal');
-            document.getElementById('login-form').reset();
+            if (userRes.ok) {
+                const user = await userRes.json();
+                currentUser = user;
+                localStorage.setItem('user', JSON.stringify(user));
+                updateUIForAuthenticatedUser();
+                hideModal('login-modal');
+                
+                // Load schools on map after successful login
+                await loadSchoolsOnMap();
+            }
         } else {
             alert(data.message || 'Login failed');
         }
