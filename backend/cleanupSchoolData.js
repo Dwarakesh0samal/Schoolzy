@@ -103,6 +103,40 @@ async function normalizeBhubaneswarSchools() {
   }
 }
 
+/**
+ * Keep only the fields used by the frontend for each school, removing all others.
+ * Required/displayed fields: id, name, location, category, description, averageRating, reviewCount, latitude, longitude
+ * Optional: phone, website (keep if present and non-empty)
+ */
+async function keepFrontendFieldsOnly() {
+  try {
+    console.log('Starting to clean up school fields for frontend...');
+    const snapshot = await db.collection('schools').get();
+    let updatedCount = 0;
+    for (const doc of snapshot.docs) {
+      const data = doc.data();
+      const cleaned = {
+        name: data.name || '',
+        location: data.location || '',
+        category: data.category || '',
+        description: data.description || '',
+        averageRating: typeof data.averageRating === 'number' ? data.averageRating : 0,
+        reviewCount: typeof data.reviewCount === 'number' ? data.reviewCount : 0,
+        latitude: typeof data.latitude === 'number' ? data.latitude : 0,
+        longitude: typeof data.longitude === 'number' ? data.longitude : 0,
+      };
+      // Optionally add phone and website if present and non-empty
+      if (data.phone && data.phone.trim() !== '') cleaned.phone = data.phone;
+      if (data.website && data.website.trim() !== '') cleaned.website = data.website;
+      await db.collection('schools').doc(doc.id).set(cleaned, { merge: false });
+      updatedCount++;
+    }
+    console.log(`Frontend field cleanup complete. Schools updated: ${updatedCount}`);
+  } catch (error) {
+    console.error('Error cleaning up school fields:', error);
+  }
+}
+
 // Run the cleanup if this file is executed directly
 if (require.main === module) {
   // cleanupSchoolData(); // Uncomment if you want to run the cleanup as well
@@ -117,4 +151,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { cleanupSchoolData, normalizeBhubaneswarSchools }; 
+module.exports = { cleanupSchoolData, normalizeBhubaneswarSchools, keepFrontendFieldsOnly }; 
