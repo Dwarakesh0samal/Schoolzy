@@ -4,8 +4,8 @@ let currentUser = null;
 let schools = [];
 let markers = [];
 
-// API base URL
-const API_BASE = 'https://schoolzy-k8g7.onrender.com/api';
+// API base URL - use relative URL for production compatibility
+const API_BASE = '/api';
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -86,6 +86,7 @@ async function checkAuthStatus() {
                 localStorage.removeItem('user');
             }
         } catch (err) {
+            console.error('Auth check error:', err);
             localStorage.removeItem('token');
             localStorage.removeItem('user');
         }
@@ -172,7 +173,16 @@ async function loadSchools(filters = {}) {
     try {
         const queryParams = new URLSearchParams(filters).toString();
         const response = await fetch(`${API_BASE}/schools?${queryParams}`);
-        schools = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Handle the correct API response structure
+        const schoolsData = data.schools || data || [];
+        schools = schoolsData;
         
         displaySchools(schools);
     } catch (error) {
@@ -198,15 +208,8 @@ function displaySchools(schoolsToDisplay) {
             </div>
             <div class="school-content">
                 <h3 class="school-name">${school.name}</h3>
-                <p class="school-location">
-                    <i class="fas fa-map-marker-alt"></i>
-                    ${school.location}
-                </p>
-                <div class="school-rating">
-                    <span class="stars">${'★'.repeat(Math.round(school.averageRating || 0))}${'☆'.repeat(5 - Math.round(school.averageRating || 0))}</span>
-                    <span>${(school.averageRating || 0).toFixed(1)} (${school.reviewCount || 0} reviews)</span>
-                </div>
-                <span class="school-category">${school.category || 'School'}</span>
+                <p class="school-location">${school.location || 'Location not specified'}</p>
+                <p class="school-rating">Rating: ${(school.averageRating || 0).toFixed(1)} ⭐ (${school.reviewCount || 0} reviews)</p>
             </div>
         </div>
     `).join('');
@@ -304,7 +307,7 @@ async function loadSchoolsOnMap() {
         
         const data = await response.json();
         
-        // Handle the API response structure (schools array or paginated response)
+        // Handle the correct API response structure
         const schoolsData = data.schools || data || [];
         
         console.log(`Loaded ${schoolsData.length} schools for map`);
@@ -321,8 +324,7 @@ async function loadSchoolsOnMap() {
                     .bindPopup(`
                         <div class="map-popup">
                             <h3>${school.name}</h3>
-                            <p>${school.location}</p>
-                            <img src="${school.image_url || ''}" alt="School Image" style="max-width:150px;max-height:80px;" />
+                            <p>${school.location || 'Location not specified'}</p>
                             <p>Rating: ${(school.averageRating || 0).toFixed(1)} ⭐</p>
                             <button onclick="showSchoolDetails('${school.id}')" class="btn btn-primary btn-sm">View Details</button>
                         </div>

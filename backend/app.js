@@ -19,6 +19,9 @@ const { errorHandler, notFoundHandler } = require('./middleware/errorHandlers');
 // Create Express app instance
 const app = express();
 
+// Trust proxy setting for Render deployment (MUST be before rate limiting)
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: {
@@ -37,7 +40,7 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 }));
 
-// Rate limiting
+// Rate limiting (after trust proxy setting)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
@@ -107,7 +110,8 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    trustProxy: app.get('trust proxy')
   });
 });
 
