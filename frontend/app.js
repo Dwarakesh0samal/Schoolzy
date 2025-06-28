@@ -4,11 +4,19 @@ let currentUser = null;
 let schools = [];
 let markers = [];
 
-// API base URL - use relative URL for production compatibility
-const API_BASE = '/api';
+// API base URL - use the actual backend URL for production
+const API_BASE = window.location.hostname === 'localhost' 
+    ? 'http://localhost:5000/api' 
+    : 'https://schoolzy-k8g7.onrender.com/api';
+
+// Loading state management
+let isLoading = false;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initializing Schoolzy app...');
+    console.log('API Base URL:', API_BASE);
+    
     initializeApp();
     const userInfo = document.getElementById('user-info');
     const dropdown = document.getElementById('profile-dropdown');
@@ -52,17 +60,150 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-async function initializeApp() {
-    await checkAuthStatus();
-    loadSchools();
-    initializeMap();
-    
-    // Load schools on map if user is authenticated
-    if (currentUser) {
-        await loadSchoolsOnMap();
+// Connectivity test function
+async function testBackendConnectivity() {
+    try {
+        console.log('Testing backend connectivity...');
+        const testUrl = `${API_BASE.replace('/api', '')}/api/test`;
+        console.log('Test URL:', testUrl);
+        
+        const response = await fetch(testUrl);
+        console.log('Test response status:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Backend connectivity test successful:', data);
+            return true;
+        } else {
+            console.error('Backend connectivity test failed:', response.status);
+            return false;
+        }
+    } catch (error) {
+        console.error('Backend connectivity test error:', error);
+        return false;
     }
+}
+
+// Health check function
+async function checkBackendHealth() {
+    try {
+        console.log('Checking backend health...');
+        const healthUrl = `${API_BASE.replace('/api', '')}/api/health`;
+        console.log('Health URL:', healthUrl);
+        
+        const response = await fetch(healthUrl);
+        console.log('Health response status:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Backend health check successful:', data);
+            return data;
+        } else {
+            console.error('Backend health check failed:', response.status);
+            return null;
+        }
+    } catch (error) {
+        console.error('Backend health check error:', error);
+        return null;
+    }
+}
+
+async function initializeApp() {
+    try {
+        showLoadingMessage('Initializing app...');
+        
+        // Test backend connectivity first
+        const isConnected = await testBackendConnectivity();
+        if (!isConnected) {
+            showErrorMessage('Cannot connect to backend server. Please check your internet connection.');
+            hideLoadingMessage();
+            return;
+        }
+        
+        // Check backend health
+        const health = await checkBackendHealth();
+        if (health) {
+            console.log('Backend environment:', health.environment);
+            console.log('Firebase configured:', health.firebase.configured);
+        }
+        
+        await checkAuthStatus();
+        await loadSchools();
+        initializeMap();
+        
+        // Load schools on map if user is authenticated
+        if (currentUser) {
+            await loadSchoolsOnMap();
+        }
+        
+        setupEventListeners();
+        hideLoadingMessage();
+    } catch (error) {
+        console.error('App initialization error:', error);
+        showErrorMessage('Failed to initialize app. Please refresh the page.');
+        hideLoadingMessage();
+    }
+}
+
+// Loading and error message functions
+function showLoadingMessage(message) {
+    const loadingDiv = document.getElementById('loading-message') || createLoadingElement();
+    loadingDiv.textContent = message;
+    loadingDiv.style.display = 'block';
+}
+
+function hideLoadingMessage() {
+    const loadingDiv = document.getElementById('loading-message');
+    if (loadingDiv) {
+        loadingDiv.style.display = 'none';
+    }
+}
+
+function showErrorMessage(message) {
+    const errorDiv = document.getElementById('error-message') || createErrorElement();
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
     
-    setupEventListeners();
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        errorDiv.style.display = 'none';
+    }, 5000);
+}
+
+function createLoadingElement() {
+    const div = document.createElement('div');
+    div.id = 'loading-message';
+    div.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #667eea;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        z-index: 10000;
+        display: none;
+    `;
+    document.body.appendChild(div);
+    return div;
+}
+
+function createErrorElement() {
+    const div = document.createElement('div');
+    div.id = 'error-message';
+    div.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #e53e3e;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        z-index: 10000;
+        display: none;
+    `;
+    document.body.appendChild(div);
+    return div;
 }
 
 // Authentication functions
@@ -70,6 +211,7 @@ async function checkAuthStatus() {
     const token = localStorage.getItem('token');
     if (token) {
         try {
+            console.log('Checking auth status...');
             // Fetch user info from backend
             const res = await fetch(`${API_BASE}/auth/me`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -79,8 +221,10 @@ async function checkAuthStatus() {
                 currentUser = user;
                 localStorage.setItem('user', JSON.stringify(user));
                 updateUIForAuthenticatedUser();
+                console.log('User authenticated:', user.name);
                 return;
             } else {
+                console.log('Token invalid, removing from storage');
                 // Token invalid/expired
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
@@ -167,28 +311,44 @@ async function loadSchools(filters = {}) {
     const loading = document.getElementById('loading');
     const schoolsGrid = document.getElementById('schools-grid');
     
+    if (isLoading) {
+        console.log('Already loading schools, skipping...');
+        return;
+    }
+    
+    isLoading = true;
     loading.classList.remove('hidden');
     schoolsGrid.innerHTML = '';
     
     try {
+        console.log('Loading schools with filters:', filters);
         const queryParams = new URLSearchParams(filters).toString();
-        const response = await fetch(`${API_BASE}/schools?${queryParams}`);
+        const url = `${API_BASE}/schools?${queryParams}`;
+        console.log('Fetching from URL:', url);
+        
+        const response = await fetch(url);
+        console.log('Response status:', response.status);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
         }
         
         const data = await response.json();
+        console.log('Schools API response:', data);
         
         // Handle the correct API response structure
         const schoolsData = data.schools || data || [];
         schools = schoolsData;
         
+        console.log(`Loaded ${schools.length} schools`);
         displaySchools(schools);
     } catch (error) {
         console.error('Error loading schools:', error);
-        schoolsGrid.innerHTML = '<p class="error">Error loading schools. Please try again.</p>';
+        const errorMessage = `Error loading schools: ${error.message}`;
+        schoolsGrid.innerHTML = `<p class="error">${errorMessage}</p>`;
+        showErrorMessage(errorMessage);
     } finally {
+        isLoading = false;
         loading.classList.add('hidden');
     }
 }
@@ -297,15 +457,28 @@ async function loadSchoolsOnMap() {
     // Clear any existing error messages
     clearMapMessages();
     
+    if (isLoading) {
+        console.log('Already loading schools on map, skipping...');
+        return;
+    }
+    
+    isLoading = true;
+    showLoadingMessage('Loading schools on map...');
+    
     try {
         console.log('Loading schools on map...');
-        const response = await fetch(`${API_BASE}/schools`);
+        const url = `${API_BASE}/schools`;
+        console.log('Fetching from URL:', url);
+        
+        const response = await fetch(url);
+        console.log('Map response status:', response.status);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
         }
         
         const data = await response.json();
+        console.log('Map API response:', data);
         
         // Handle the correct API response structure
         const schoolsData = data.schools || data || [];
@@ -320,6 +493,7 @@ async function loadSchoolsOnMap() {
         // Add markers for each school
         schoolsData.forEach(school => {
             if (school.latitude && school.longitude) {
+                console.log(`Adding marker for ${school.name} at ${school.latitude}, ${school.longitude}`);
                 const marker = L.marker([school.latitude, school.longitude])
                     .bindPopup(`
                         <div class="map-popup">
@@ -332,6 +506,8 @@ async function loadSchoolsOnMap() {
                 marker.addTo(map);
                 markers.push(marker);
                 bounds.push([school.latitude, school.longitude]);
+            } else {
+                console.log(`Skipping ${school.name} - no coordinates`);
             }
         });
         
@@ -339,6 +515,7 @@ async function loadSchoolsOnMap() {
         if (bounds.length > 0) {
             map.fitBounds(bounds, { padding: [50, 50] });
             console.log('Map fitted to school markers');
+            hideLoadingMessage();
         } else {
             console.log('No schools with coordinates found');
             // Show a message to the user
@@ -350,9 +527,11 @@ async function loadSchoolsOnMap() {
                 noSchoolsMsg.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000;';
                 mapContainer.appendChild(noSchoolsMsg);
             }
+            hideLoadingMessage();
         }
     } catch (error) {
         console.error('Error loading schools on map:', error);
+        const errorMessage = `Error loading schools on map: ${error.message}`;
         
         // Show user-friendly error message
         const mapContainer = document.getElementById('map-container');
@@ -366,6 +545,11 @@ async function loadSchoolsOnMap() {
             errorMsg.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; text-align: center;';
             mapContainer.appendChild(errorMsg);
         }
+        
+        showErrorMessage(errorMessage);
+        hideLoadingMessage();
+    } finally {
+        isLoading = false;
     }
 }
 
@@ -519,70 +703,139 @@ function setupEventListeners() {
 // Form handlers
 async function handleLogin(e) {
     e.preventDefault();
+    
+    if (isLoading) {
+        console.log('Already processing login, skipping...');
+        return;
+    }
+    
+    isLoading = true;
+    showLoadingMessage('Logging in...');
+    
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
+    
     try {
-        const response = await fetch(`${API_BASE}/auth/login`, {
+        console.log('Attempting login for:', email);
+        const url = `${API_BASE}/auth/login`;
+        console.log('Login URL:', url);
+        
+        const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
+        
+        console.log('Login response status:', response.status);
         const data = await response.json();
+        console.log('Login response:', data);
+        
         if (response.ok) {
             localStorage.setItem('token', data.token);
+            console.log('Login successful, fetching user info...');
+            
             // Fetch user info after login
             const userRes = await fetch(`${API_BASE}/auth/me`, {
                 headers: { 'Authorization': `Bearer ${data.token}` }
             });
+            
             if (userRes.ok) {
                 const user = await userRes.json();
                 currentUser = user;
                 localStorage.setItem('user', JSON.stringify(user));
                 updateUIForAuthenticatedUser();
                 hideModal('login-modal');
+                hideLoadingMessage();
+                showLoadingMessage('Loading schools...');
                 
                 // Load schools on map after successful login
                 await loadSchoolsOnMap();
+                hideLoadingMessage();
+            } else {
+                throw new Error('Failed to fetch user profile after login');
             }
         } else {
-            alert(data.message || 'Login failed');
+            const errorMessage = data.message || 'Login failed';
+            console.error('Login failed:', errorMessage);
+            showErrorMessage(errorMessage);
         }
     } catch (error) {
         console.error('Login error:', error);
-        alert('Login failed. Please try again.');
+        const errorMessage = `Login failed: ${error.message}`;
+        showErrorMessage(errorMessage);
+    } finally {
+        isLoading = false;
+        hideLoadingMessage();
     }
 }
 
 async function handleRegister(e) {
     e.preventDefault();
+    
+    if (isLoading) {
+        console.log('Already processing registration, skipping...');
+        return;
+    }
+    
+    isLoading = true;
+    showLoadingMessage('Creating account...');
+    
     const name = document.getElementById('register-name').value;
     const email = document.getElementById('register-email').value;
     const password = document.getElementById('register-password').value;
+    
     try {
-        const response = await fetch(`${API_BASE}/auth/register`, {
+        console.log('Attempting registration for:', email);
+        const url = `${API_BASE}/auth/register`;
+        console.log('Register URL:', url);
+        
+        const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, email, password })
         });
+        
+        console.log('Register response status:', response.status);
         const data = await response.json();
+        console.log('Register response:', data);
+        
         if (response.ok) {
             localStorage.setItem('token', data.token);
+            console.log('Registration successful, fetching user info...');
+            
             // Fetch user info after register
             const userRes = await fetch(`${API_BASE}/auth/me`, {
                 headers: { 'Authorization': `Bearer ${data.token}` }
             });
-            const user = await userRes.json();
-            currentUser = user;
-            localStorage.setItem('user', JSON.stringify(user));
-            updateUIForAuthenticatedUser();
-            hideModal('register-modal');
-            document.getElementById('register-form').reset();
+            
+            if (userRes.ok) {
+                const user = await userRes.json();
+                currentUser = user;
+                localStorage.setItem('user', JSON.stringify(user));
+                updateUIForAuthenticatedUser();
+                hideModal('register-modal');
+                document.getElementById('register-form').reset();
+                hideLoadingMessage();
+                showLoadingMessage('Loading schools...');
+                
+                // Load schools on map after successful registration
+                await loadSchoolsOnMap();
+                hideLoadingMessage();
+            } else {
+                throw new Error('Failed to fetch user profile after registration');
+            }
         } else {
-            alert(data.message || 'Registration failed');
+            const errorMessage = data.message || 'Registration failed';
+            console.error('Registration failed:', errorMessage);
+            showErrorMessage(errorMessage);
         }
     } catch (error) {
         console.error('Registration error:', error);
-        alert('Registration failed. Please try again.');
+        const errorMessage = `Registration failed: ${error.message}`;
+        showErrorMessage(errorMessage);
+    } finally {
+        isLoading = false;
+        hideLoadingMessage();
     }
 }
 

@@ -55,11 +55,38 @@ app.use(compression());
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://schoolzy-k8g7.onrender.com', 'https://schoolzy.com']
-    : ['http://localhost:3000', 'http://localhost:5000'],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = process.env.NODE_ENV === 'production' 
+      ? [
+          'https://schoolzy-k8g7.onrender.com',
+          'https://schoolzy.com',
+          'https://schoolzy.vercel.app',
+          'https://schoolzy.netlify.app'
+        ]
+      : ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:5500', 'http://localhost:5500'];
+    
+    console.log('CORS check - Origin:', origin, 'Allowed origins:', allowedOrigins);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      // In development, allow all origins for testing
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Allowing origin in development mode');
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    }
+  },
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 };
 app.use(cors(corsOptions));
 
@@ -111,7 +138,28 @@ app.get('/api/health', (req, res) => {
     status: 'OK', 
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    trustProxy: app.get('trust proxy')
+    trustProxy: app.get('trust proxy'),
+    cors: {
+      origin: req.headers.origin || 'no-origin',
+      allowed: true
+    },
+    firebase: {
+      configured: !!process.env.FIREBASE_PROJECT_ID,
+      projectId: process.env.FIREBASE_PROJECT_ID || 'not-set'
+    }
+  });
+});
+
+// Test endpoint for debugging
+app.get('/api/test', (req, res) => {
+  res.json({
+    message: 'Backend is working!',
+    timestamp: new Date().toISOString(),
+    headers: {
+      origin: req.headers.origin,
+      host: req.headers.host,
+      'user-agent': req.headers['user-agent']
+    }
   });
 });
 
