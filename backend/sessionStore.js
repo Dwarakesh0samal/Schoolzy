@@ -1,7 +1,9 @@
 const db = require('./firestore');
+const EventEmitter = require('events');
 
-class FirebaseSessionStore {
+class FirebaseSessionStore extends EventEmitter {
   constructor(options = {}) {
+    super();
     this.collection = options.collection || 'sessions';
     this.ttl = options.ttl || 24 * 60 * 60 * 1000; // 24 hours default
   }
@@ -91,6 +93,24 @@ class FirebaseSessionStore {
     } catch (error) {
       console.error('Firebase session store cleanup error:', error);
     }
+  }
+
+  // Required method for express-session compatibility
+  all(callback) {
+    // This is optional but can be implemented if needed
+    callback(null, []);
+  }
+
+  // Required method for express-session compatibility
+  clear(callback) {
+    // This is optional but can be implemented if needed
+    callback(null);
+  }
+
+  // Required method for express-session compatibility
+  length(callback) {
+    // This is optional but can be implemented if needed
+    callback(null, 0);
   }
 }
 
