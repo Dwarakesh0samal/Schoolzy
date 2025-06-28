@@ -64,7 +64,8 @@ const corsOptions = {
           'https://schoolzy-k8g7.onrender.com',
           'https://schoolzy.com',
           'https://schoolzy.vercel.app',
-          'https://schoolzy.netlify.app'
+          'https://schoolzy.netlify.app',
+          'https://schoolzy-frontend.onrender.com'
         ]
       : ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:5500', 'http://localhost:5500'];
     
