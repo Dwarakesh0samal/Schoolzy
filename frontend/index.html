@@ -84,10 +84,10 @@
             <h1>Find Your Perfect School</h1>
             <p>Discover, compare, and review schools in your area. Make informed decisions about education.</p>
             <div class="hero-buttons">
-                <button class="btn btn-primary btn-large" onclick="scrollToSection('schools')">
+                <button id="findSchoolsBtn" class="btn btn-primary btn-large">
                     <i class="fas fa-search" aria-hidden="true"></i> Find Schools
                 </button>
-                <button class="btn btn-outline btn-large" onclick="scrollToSection('map')">
+                <button id="viewMapBtn" class="btn btn-outline btn-large">
                     <i class="fas fa-map-marker-alt" aria-hidden="true"></i> View Map
                 </button>
             </div>
@@ -313,6 +313,6 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script type="module" src="config.js"></script>
-    <script type="module" src="app.min.js"></script>
+    <script type="module" src="/app.js"></script>
 </body>
 </html> 
