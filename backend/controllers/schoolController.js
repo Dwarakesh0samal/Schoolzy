@@ -1,4 +1,5 @@
 const db = require('../firestore');
+const { sanitizeSchools, sanitizeSchool } = require('../utils/dataSanitizer');
 
 // Get all schools with pagination and filtering
 const getAllSchools = async (req, res) => {
@@ -18,10 +19,13 @@ const getAllSchools = async (req, res) => {
     }
 
     const snapshot = await query.get();
-    const schools = snapshot.docs.map(doc => ({
+    const rawSchools = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
+
+    // Sanitize all schools to ensure consistent structure
+    const schools = sanitizeSchools(rawSchools);
 
     // Apply pagination
     const startIndex = (page - 1) * limit;
@@ -56,7 +60,10 @@ const getSchoolById = async (req, res) => {
       return res.status(404).json({ message: 'School not found' });
     }
     
-    res.json({ id: doc.id, ...doc.data() });
+    const rawSchool = { id: doc.id, ...doc.data() };
+    const school = sanitizeSchool(rawSchool);
+    
+    res.json(school);
   } catch (error) {
     res.status(500).json({ 
       message: 'Error loading school details',
@@ -107,12 +114,15 @@ const getSchoolReviews = async (req, res) => {
 // Create new school
 const createSchool = async (req, res) => {
   try {
+    // Sanitize the input data
+    const sanitizedData = sanitizeSchool(req.body);
+    
     const schoolData = {
-      ...req.body,
+      ...sanitizedData,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      averageRating: 0,
-      reviewCount: 0
+      averageRating: sanitizedData.averageRating || 0,
+      reviewCount: sanitizedData.reviewCount || 0
     };
 
     const docRef = await db.collection('schools').add(schoolData);
@@ -133,8 +143,12 @@ const createSchool = async (req, res) => {
 const updateSchool = async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Sanitize the input data
+    const sanitizedData = sanitizeSchool(req.body);
+    
     const updateData = {
-      ...req.body,
+      ...sanitizedData,
       updatedAt: new Date().toISOString()
     };
 
@@ -193,10 +207,12 @@ const searchByLocation = async (req, res) => {
       .where('location', '<=', location + '\uf8ff')
       .get();
 
-    const schools = snapshot.docs.map(doc => ({
+    const rawSchools = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
+
+    const schools = sanitizeSchools(rawSchools);
 
     res.json({ schools });
   } catch (error) {
@@ -220,10 +236,12 @@ const searchByName = async (req, res) => {
       .where('name', '<=', name + '\uf8ff')
       .get();
 
-    const schools = snapshot.docs.map(doc => ({
+    const rawSchools = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
+
+    const schools = sanitizeSchools(rawSchools);
 
     res.json({ schools });
   } catch (error) {
@@ -242,10 +260,12 @@ const filterByCategory = async (req, res) => {
       .where('category', '==', category)
       .get();
 
-    const schools = snapshot.docs.map(doc => ({
+    const rawSchools = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
+
+    const schools = sanitizeSchools(rawSchools);
 
     res.json({ schools });
   } catch (error) {
@@ -264,10 +284,12 @@ const filterByType = async (req, res) => {
       .where('type', '==', type)
       .get();
 
-    const schools = snapshot.docs.map(doc => ({
+    const rawSchools = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
+
+    const schools = sanitizeSchools(rawSchools);
 
     res.json({ schools });
   } catch (error) {

@@ -1,4 +1,5 @@
 const db = require('../firestore');
+const { sanitizeSchools } = require('../utils/dataSanitizer');
 
 // Get all users (admin)
 async function getAllUsers(req, res) {
@@ -154,10 +155,13 @@ const getAllSchools = async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
     const snapshot = await db.collection('schools').get();
     
-    const schools = snapshot.docs.map(doc => ({
+    const rawSchools = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
+
+    // Sanitize all schools to ensure consistent structure
+    const schools = sanitizeSchools(rawSchools);
 
     // Apply pagination
     const startIndex = (page - 1) * limit;
