@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const passport = require('passport');
 const session = require('express-session');
+const FirebaseSessionStore = require('./sessionStore');
 
 // Import routes and middleware
 const authRoutes = require('./routes/auth');
@@ -63,16 +64,25 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Session configuration
+// Firebase Firestore Session Store
+const firebaseSessionStore = new FirebaseSessionStore({
+  collection: 'sessions',
+  ttl: 7 * 24 * 60 * 60 * 1000 // 1 week TTL
+});
+
+// Session configuration with Firebase Firestore store
 app.use(session({
+  store: firebaseSessionStore,
   secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || 'schoolzy_session_secret',
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
+  },
+  name: 'schoolzy.sid' // Custom session cookie name
 }));
 
 // Passport middleware
