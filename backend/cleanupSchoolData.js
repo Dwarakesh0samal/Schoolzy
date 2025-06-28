@@ -72,17 +72,49 @@ async function cleanupSchoolData() {
   }
 }
 
+/**
+ * Update all schools to have location 'Bhubaneswar' if their location contains 'bhubaneswar',
+ * and remove any schools whose location does not mention 'bhubaneswar'.
+ */
+async function normalizeBhubaneswarSchools() {
+  try {
+    console.log('Starting normalization of Bhubaneswar schools...');
+    const snapshot = await db.collection('schools').get();
+    let updatedCount = 0;
+    let removedCount = 0;
+    for (const doc of snapshot.docs) {
+      const data = doc.data();
+      const location = (data.location || '').toLowerCase();
+      if (location.includes('bhubaneswar')) {
+        if (data.location !== 'Bhubaneswar') {
+          await db.collection('schools').doc(doc.id).update({ location: 'Bhubaneswar' });
+          console.log(`Updated location for: ${data.name}`);
+          updatedCount++;
+        }
+      } else {
+        await db.collection('schools').doc(doc.id).delete();
+        console.log(`Removed school: ${data.name} (location: ${data.location})`);
+        removedCount++;
+      }
+    }
+    console.log(`Normalization complete. Schools updated: ${updatedCount}, removed: ${removedCount}`);
+  } catch (error) {
+    console.error('Error normalizing Bhubaneswar schools:', error);
+  }
+}
+
 // Run the cleanup if this file is executed directly
 if (require.main === module) {
-  cleanupSchoolData()
+  // cleanupSchoolData(); // Uncomment if you want to run the cleanup as well
+  normalizeBhubaneswarSchools()
     .then(() => {
-      console.log('Cleanup script finished.');
+      console.log('Normalization script finished.');
       process.exit(0);
     })
     .catch((error) => {
-      console.error('Cleanup script failed:', error);
+      console.error('Normalization script failed:', error);
       process.exit(1);
     });
 }
 
-module.exports = { cleanupSchoolData }; 
+module.exports = { cleanupSchoolData, normalizeBhubaneswarSchools }; 
