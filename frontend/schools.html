@@ -33,7 +33,8 @@
     async function loadSchools() {
       try {
         const res = await fetch('/api/schools');
-        schools = await res.json();
+        const data = await res.json();
+        schools = data.schools || [];
         grid.innerHTML = schools.map(school => `
           <div class="school-card">
             <div class="school-image">
