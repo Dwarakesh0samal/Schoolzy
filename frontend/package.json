@@ -10,10 +10,11 @@
     "lint": "eslint . --ext js,html --report-unused-disable-directives --max-warnings 0"
   },
   "devDependencies": {
-    "vite": "^5.0.0",
-    "eslint": "^8.0.0"
+    "eslint": "^8.0.0",
+    "terser": "^5.43.1",
+    "vite": "^5.4.19"
   },
   "dependencies": {
     "leaflet": "^1.9.4"
   }
-} 
+}

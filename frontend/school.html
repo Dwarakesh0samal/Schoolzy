@@ -41,8 +41,9 @@
   <script>
     const params = new URLSearchParams(window.location.search);
     const schoolId = params.get('id');
+    const API_BASE = `${import.meta.env.VITE_API_URL}/api`;
     async function loadSchool() {
-      const res = await fetch(`/api/schools/${schoolId}`);
+      const res = await fetch(`${API_BASE}/schools/${schoolId}`);
       const school = await res.json();
       document.getElementById('school-details').innerHTML = `
         <h2>${school.name}</h2>
@@ -55,7 +56,7 @@
       `;
     }
     async function loadReviews() {
-      const res = await fetch(`/api/reviews/${schoolId}`);
+      const res = await fetch(`${API_BASE}/reviews/${schoolId}`);
       const reviews = await res.json();
       document.getElementById('reviews-list').innerHTML = reviews.length ? reviews.map(r => `
         <div class="review-item">
@@ -103,7 +104,7 @@
       }
       const rating = Number(document.getElementById('review-rating').value);
       const review_text = document.getElementById('review-text').value;
-      await fetch(`/api/reviews/${schoolId}`, {
+      await fetch(`${API_BASE}/reviews/${schoolId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, user_name, user_profile_picture, rating, review_text })

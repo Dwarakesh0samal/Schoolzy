@@ -29,8 +29,9 @@
         window.location.href = 'index.html';
         return;
       }
+      const API_BASE = `${import.meta.env.VITE_API_URL}/api`;
       try {
-        const res = await fetch('/api/auth/status');
+        const res = await fetch(`${API_BASE}/auth/status`);
         const data = await res.json();
         if (!data.authenticated) {
           window.location.href = 'index.html';
