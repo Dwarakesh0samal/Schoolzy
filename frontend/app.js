@@ -58,23 +58,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Find Schools
-    const findSchoolsBtn = document.querySelector('.hero-buttons .btn-primary');
+    const findSchoolsBtn = document.getElementById('findSchoolsBtn');
     if (findSchoolsBtn) {
         findSchoolsBtn.addEventListener('click', function(e) {
             e.preventDefault();
             console.log('Find Schools button clicked');
             window.scrollToSection('schools');
         });
+    } else {
+        console.warn('Find Schools button (#findSchoolsBtn) not found');
     }
 
     // View Map
-    const viewMapBtn = document.querySelector('.hero-buttons .btn-outline');
+    const viewMapBtn = document.getElementById('viewMapBtn');
     if (viewMapBtn) {
         viewMapBtn.addEventListener('click', function(e) {
             e.preventDefault();
             console.log('View Map button clicked');
             window.scrollToSection('map');
         });
+    } else {
+        console.warn('View Map button (#viewMapBtn) not found');
     }
 
     // Login
@@ -85,6 +89,8 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Login button clicked');
             window.showModal('login-modal');
         });
+    } else {
+        console.warn('Login button (#login-btn) not found');
     }
 
     // Register
@@ -95,6 +101,8 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Register button clicked');
             window.showModal('register-modal');
         });
+    } else {
+        console.warn('Register button (#register-btn) not found');
     }
 });
 
