@@ -453,106 +453,50 @@ function clearMapMessages() {
 }
 
 async function loadSchoolsOnMap() {
-    // Clear any existing error messages
-    clearMapMessages();
-    
-    if (isLoading) {
-        console.log('Already loading schools on map, skipping...');
-        return;
-    }
-    
-    isLoading = true;
-    showLoadingMessage('Loading schools on map...');
-    
     try {
-        console.log('Loading schools on map...');
-        const url = `${API_BASE}/schools`;
-        console.log('Fetching from URL:', url);
-        
-        const response = await fetch(url);
-        console.log('Map response status:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools`);
+        if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+        const data = await res.json();
+        console.log('Loaded schools data:', data);
+
+        // Defensive: ensure schools is always an array
+        const schools = Array.isArray(data.schools) ? data.schools : [];
+        if (schools.length === 0) {
+            showNoSchoolsFoundOnMap(); // Show a friendly message, not an error
+            return;
         }
-        
-        const data = await response.json();
-        console.log('Map API response:', data);
-        
-        // Handle the correct API response structure
-        const schoolsData = data.schools || data || [];
-        console.log('schoolsData:', schoolsData);
-        if (!Array.isArray(schoolsData)) {
-            console.error('schoolsData is not an array:', schoolsData);
+
+        // Clear existing markers if needed
+        if (window.markers) {
+            window.markers.forEach(marker => marker.remove());
         }
-        console.log(`Loaded ${schoolsData.length} schools for map`);
-        
-        // Clear existing markers
-        markers.forEach(marker => map.removeLayer(marker));
-        markers = [];
-        
-        const bounds = [];
-        // Add markers for each school
-        schoolsData.forEach(school => {
-            if (school.latitude && school.longitude) {
-                console.log(`Adding marker for ${school.name} at ${school.latitude}, ${school.longitude}`);
+        window.markers = [];
+
+        schools.forEach(school => {
+            // Defensive: check for valid coordinates
+            if (
+                typeof school.latitude === 'number' &&
+                typeof school.longitude === 'number' &&
+                !isNaN(school.latitude) &&
+                !isNaN(school.longitude)
+            ) {
                 const marker = L.marker([school.latitude, school.longitude])
-                    .bindPopup(`
-                        <div class="map-popup">
-                            <h3>${school.name}</h3>
-                            <p>${school.location || 'Location not specified'}</p>
-                            <p>Rating: ${(school.averageRating || 0).toFixed(1)} ⭐</p>
-                            <button onclick="showSchoolDetails('${school.id}')" class="btn btn-primary btn-sm">View Details</button>
-                        </div>
-                    `);
-                marker.addTo(map);
-                markers.push(marker);
-                bounds.push([school.latitude, school.longitude]);
+                    .addTo(map)
+                    .bindPopup(`<b>${school.name}</b><br>${school.location}`);
+                window.markers.push(marker);
             } else {
-                console.log(`Skipping ${school.name} - no coordinates`);
+                console.warn('Skipping school with invalid coordinates:', school);
             }
         });
-        
-        // Fit map to markers if any
-        if (bounds.length > 0) {
-            map.fitBounds(bounds, { padding: [50, 50] });
-            console.log('Map fitted to school markers');
-            hideLoadingMessage();
-        } else {
-            console.log('No schools with coordinates found');
-            // Show a message to the user
-            const mapContainer = document.getElementById('map-container');
-            if (mapContainer) {
-                const noSchoolsMsg = document.createElement('div');
-                noSchoolsMsg.className = 'map-no-schools';
-                noSchoolsMsg.innerHTML = '<p>No schools found with location data. Try searching for a specific city.</p>';
-                noSchoolsMsg.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000;';
-                mapContainer.appendChild(noSchoolsMsg);
-            }
-            hideLoadingMessage();
-        }
-    } catch (error) {
-        console.error('Error loading schools on map:', error);
-        const errorMessage = `Error loading schools on map: ${error.message}`;
-        
-        // Show user-friendly error message
-        const mapContainer = document.getElementById('map-container');
-        if (mapContainer) {
-            const errorMsg = document.createElement('div');
-            errorMsg.className = 'map-error';
-            errorMsg.innerHTML = `
-                <p>Error loading schools on map</p>
-                <p style="font-size: 0.9em; color: #666;">Please try refreshing the page or contact support if the problem persists.</p>
-            `;
-            errorMsg.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 1000; text-align: center;';
-            mapContainer.appendChild(errorMsg);
-        }
-        
-        showErrorMessage(errorMessage);
-        hideLoadingMessage();
-    } finally {
-        isLoading = false;
+    } catch (err) {
+        console.error('Error loading map data:', err);
+        showErrorToast('Error loading schools. Please try again.');
     }
+}
+
+function showNoSchoolsFoundOnMap() {
+    // You can customize this to show a message on the map or in the UI
+    alert('No schools found for this area.');
 }
 
 function findNearbySchools(lat, lng, radius = 10) {
