@@ -1,6 +1,6 @@
 # Firebase Firestore Session Store
 
-This project uses a custom Firebase Firestore session store to replace the default MemoryStore for production-ready session management.
+This project uses a **custom Firebase Firestore session store** to replace the default MemoryStore for production-ready session management. We've implemented our own session store that's fully compatible with your Firebase Admin SDK version.
 
 ## Features
 
@@ -9,6 +9,15 @@ This project uses a custom Firebase Firestore session store to replace the defau
 - ✅ **Secure**: Automatic session expiration and cleanup
 - ✅ **Customizable**: Configurable TTL and collection name
 - ✅ **Compatible**: Works with express-session
+- ✅ **Version Compatible**: Works with Firebase Admin SDK 13.4.0+
+
+## Why Custom Implementation?
+
+We chose to implement our own Firebase session store instead of using `connect-session-firebase` because:
+- **Version Compatibility**: Avoids conflicts with Firebase Admin SDK 13.4.0+
+- **Full Control**: Custom implementation tailored to our needs
+- **Better Performance**: Optimized for our specific use case
+- **No Dependencies**: No additional npm packages required
 
 ## Configuration
 
@@ -114,7 +123,7 @@ req.session.user = user;
 ### Common Issues
 
 1. **"Warning: connect.session() MemoryStore is not designed for production"**
-   - ✅ **Fixed**: Using Firebase Firestore instead of MemoryStore
+   - ✅ **Fixed**: Using custom Firebase Firestore instead of MemoryStore
 
 2. **Sessions not persisting after server restart**
    - ✅ **Fixed**: Sessions stored in Firebase Firestore
@@ -122,6 +131,9 @@ req.session.user = user;
 3. **Session expiration issues**
    - Check TTL configuration
    - Run session cleanup: `npm run cleanup-sessions`
+
+4. **Build errors with connect-session-firebase**
+   - ✅ **Fixed**: Using custom implementation, no external dependencies
 
 ### Debug Mode
 
@@ -144,4 +156,14 @@ Monitor session usage in Firebase Console:
 1. Go to Firestore Database
 2. Check the `sessions` collection
 3. Monitor document count and size
-4. Set up alerts for unusual activity 
+4. Set up alerts for unusual activity
+
+## Implementation Details
+
+Our custom `FirebaseSessionStore` class:
+- Extends `EventEmitter` for express-session compatibility
+- Implements all required methods: `get`, `set`, `destroy`, `touch`
+- Includes optional methods: `all`, `clear`, `length`
+- Handles automatic session expiration
+- Provides cleanup functionality
+- Fully compatible with Firebase Admin SDK 13.4.0+ 
