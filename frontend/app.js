@@ -335,7 +335,8 @@ async function loadSchools(filters = {}) {
         console.log('Schools API response:', data);
         
         // Handle the correct API response structure
-        const schoolsData = data.schools || data || [];
+        const schoolsData = 
+         data.schools || data || [];
         schools = schoolsData;
         
         console.log(`Loaded ${schools.length} schools`);
@@ -480,7 +481,10 @@ async function loadSchoolsOnMap() {
         
         // Handle the correct API response structure
         const schoolsData = data.schools || data || [];
-        
+        console.log('schoolsData:', schoolsData);
+        if (!Array.isArray(schoolsData)) {
+            console.error('schoolsData is not an array:', schoolsData);
+        }
         console.log(`Loaded ${schoolsData.length} schools for map`);
         
         // Clear existing markers
