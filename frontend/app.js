@@ -56,6 +56,46 @@ document.addEventListener('DOMContentLoaded', function() {
             hideModal('email-verification-modal');
         });
     }
+
+    // Find Schools
+    const findSchoolsBtn = document.querySelector('.hero-buttons .btn-primary');
+    if (findSchoolsBtn) {
+        findSchoolsBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Find Schools button clicked');
+            window.scrollToSection('schools');
+        });
+    }
+
+    // View Map
+    const viewMapBtn = document.querySelector('.hero-buttons .btn-outline');
+    if (viewMapBtn) {
+        viewMapBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('View Map button clicked');
+            window.scrollToSection('map');
+        });
+    }
+
+    // Login
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Login button clicked');
+            window.showModal('login-modal');
+        });
+    }
+
+    // Register
+    const registerBtn = document.getElementById('register-btn');
+    if (registerBtn) {
+        registerBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Register button clicked');
+            window.showModal('register-modal');
+        });
+    }
 });
 
 // Connectivity test function
@@ -837,6 +877,9 @@ function scrollToSection(sectionId) {
     const section = document.getElementById(sectionId);
     if (section) {
         section.scrollIntoView({ behavior: 'smooth' });
+        console.log(`Scrolled to section: ${sectionId}`);
+    } else {
+        console.warn(`Section not found: ${sectionId}`);
     }
 }
 
