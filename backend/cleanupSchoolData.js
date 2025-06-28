@@ -137,6 +137,47 @@ async function keepFrontendFieldsOnly() {
   }
 }
 
+/**
+ * Remove all fields from each school document that are either empty ("", null, empty array)
+ * or not used by the frontend (as seen in school.html and schools.html).
+ * Only keep: id, name, location, category, description, averageRating, reviewCount, latitude, longitude, phone, website.
+ */
+async function removeEmptyAndUnusedFields() {
+  const allowedFields = [
+    'name', 'location', 'category', 'description',
+    'averageRating', 'reviewCount', 'latitude', 'longitude',
+    'phone', 'website', 'id'
+  ];
+  try {
+    console.log('Starting to remove empty and unused fields from school documents...');
+    const snapshot = await db.collection('schools').get();
+    let updatedCount = 0;
+    for (const doc of snapshot.docs) {
+      const data = doc.data();
+      const cleaned = {};
+      for (const key of allowedFields) {
+        if (data.hasOwnProperty(key)) {
+          const value = data[key];
+          // Remove if empty string, null, or empty array
+          if (
+            value === null ||
+            value === '' ||
+            (Array.isArray(value) && value.length === 0)
+          ) {
+            continue;
+          }
+          cleaned[key] = value;
+        }
+      }
+      await db.collection('schools').doc(doc.id).set(cleaned, { merge: false });
+      updatedCount++;
+    }
+    console.log(`Empty and unused field cleanup complete. Schools updated: ${updatedCount}`);
+  } catch (error) {
+    console.error('Error cleaning up school fields:', error);
+  }
+}
+
 // Run the cleanup if this file is executed directly
 if (require.main === module) {
   // cleanupSchoolData(); // Uncomment if you want to run the cleanup as well
@@ -151,4 +192,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { cleanupSchoolData, normalizeBhubaneswarSchools, keepFrontendFieldsOnly }; 
+module.exports = { cleanupSchoolData, normalizeBhubaneswarSchools, keepFrontendFieldsOnly, removeEmptyAndUnusedFields }; 
