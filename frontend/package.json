@@ -1,0 +1,19 @@
+{
+  "name": "schoolzy-frontend",
+  "version": "1.0.0",
+  "description": "Schoolzy Frontend - Find your perfect school",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext js,html --report-unused-disable-directives --max-warnings 0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "eslint": "^8.0.0"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4"
+  }
+} 

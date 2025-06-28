@@ -4,10 +4,8 @@ let currentUser = null;
 let schools = [];
 let markers = [];
 
-// API base URL - use the actual backend URL for production
-const API_BASE = window.location.hostname === 'localhost' 
-    ? 'http://localhost:5000/api' 
-    : 'https://schoolzy-k8g7.onrender.com/api';
+// API base URL - use configuration from config.js
+const API_BASE = window.SCHOOLZY_CONFIG ? window.SCHOOLZY_CONFIG.API_BASE_URL : '/api';
 
 // Loading state management
 let isLoading = false;
