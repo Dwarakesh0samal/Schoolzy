@@ -5,47 +5,63 @@ const jwt = require('jsonwebtoken');
 // Register user
 async function registerUser(req, res) {
   const { name, email, password } = req.body;
-  // Check if user exists
-  const usersRef = db.collection('users');
-  const snapshot = await usersRef.where('email', '==', email).get();
-  if (!snapshot.empty) {
-    return res.status(400).json({ message: 'User already exists' });
+  if (!name || !email || !password) {
+    return res.status(400).json({ message: 'Name, email, and password are required.' });
   }
-  await usersRef.add({ name, email, password }); // Hash password in production!
-  res.json({ message: 'User registered' });
+  try {
+    const usersRef = db.collection('users');
+    const snapshot = await usersRef.where('email', '==', email).get();
+    if (!snapshot.empty) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const userDoc = await usersRef.add({
+      name,
+      email,
+      password: hashedPassword,
+      role: 'user',
+      created_at: new Date(),
+      profile_picture: ''
+    });
+    res.json({ message: 'User registered', id: userDoc.id });
+  } catch (err) {
+    res.status(500).json({ message: 'Registration failed', error: err.message });
+  }
 }
 
 // Login user
 async function loginUser(req, res) {
   const { email, password } = req.body;
-  console.log('Login attempt:', { email, password });
-  const usersRef = db.collection('users');
-  const snapshot = await usersRef.where('email', '==', email).get();
-  if (snapshot.empty) {
-    console.log('No user found for email:', email);
-    return res.status(400).json({ message: 'Invalid credentials' });
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required.' });
   }
-  const userDoc = snapshot.docs[0];
-  const user = userDoc.data();
-  console.log('User found:', user);
-  if (user.password !== password) {
-    console.log('Password mismatch:', user.password, password);
-    return res.status(400).json({ message: 'Invalid credentials' });
+  try {
+    const usersRef = db.collection('users');
+    const snapshot = await usersRef.where('email', '==', email).get();
+    if (snapshot.empty) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+    const userDoc = snapshot.docs[0];
+    const user = userDoc.data();
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+    const token = jwt.sign(
+      {
+        id: userDoc.id,
+        email: user.email,
+        name: user.name,
+        role: user.role || 'user',
+        profile_picture: user.profile_picture || ''
+      },
+      process.env.JWT_SECRET || 'schoolzy_jwt_secret',
+      { expiresIn: '7d' }
+    );
+    res.json({ message: 'Login successful', token, user: { ...user, id: userDoc.id } });
+  } catch (err) {
+    res.status(500).json({ message: 'Login failed', error: err.message });
   }
-
-  // Generate JWT token
-  const token = jwt.sign(
-    {
-      id: userDoc.id,
-      email: user.email,
-      name: user.name,
-      role: user.role || 'user'
-    },
-    process.env.JWT_SECRET || 'schoolzy_jwt_secret',
-    { expiresIn: '7d' }
-  );
-
-  res.json({ message: 'Login successful', token, user: { ...user, id: userDoc.id } });
 }
 
 // Get user by email
@@ -53,68 +69,69 @@ async function getUserByEmail(email) {
   const usersRef = db.collection('users');
   const snapshot = await usersRef.where('email', '==', email).get();
   if (!snapshot.empty) {
-    return snapshot.docs[0].data();
+    return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
   }
   return null;
 }
 
 // Get user profile
-function getProfile(req, res) {
-  db.get('SELECT id, name, email, profile_picture, role, created_at FROM users WHERE id = ?', 
-    [req.user.id], (err, user) => {
-    if (err) {
-      return res.status(500).json({ message: 'Database error.' });
-    }
-    if (!user) {
+async function getProfile(req, res) {
+  try {
+    const userRef = db.collection('users').doc(req.user.id);
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) {
       return res.status(404).json({ message: 'User not found.' });
     }
-    res.json(user);
-  });
+    const user = userDoc.data();
+    res.json({ id: userDoc.id, name: user.name, email: user.email, profile_picture: user.profile_picture, role: user.role, created_at: user.created_at });
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching profile.' });
+  }
 }
 
 // Update user profile
-function updateProfile(req, res) {
+async function updateProfile(req, res) {
   const { name, email } = req.body;
   if (!name || !email) {
     return res.status(400).json({ message: 'Name and email are required.' });
   }
-  db.run('UPDATE users SET name = ?, email = ? WHERE id = ?', 
-    [name, email, req.user.id], function(err) {
-    if (err) {
-      return res.status(500).json({ message: 'Error updating profile.' });
-    }
+  try {
+    const userRef = db.collection('users').doc(req.user.id);
+    await userRef.update({ name, email });
     res.json({ message: 'Profile updated successfully.' });
-  });
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating profile.' });
+  }
 }
 
 // Update user profile (with picture upload)
-function updateProfileWithPicture(req, res) {
+async function updateProfileWithPicture(req, res) {
   const { name, email } = req.body;
   let profile_picture = req.user.profile_picture;
   if (req.file) {
-    // Save the uploaded file path
     profile_picture = `/uploads/${req.file.filename}`;
   }
   if (!name || !email) {
     return res.status(400).json({ message: 'Name and email are required.' });
   }
-  db.run('UPDATE users SET name = ?, email = ?, profile_picture = ? WHERE id = ?', 
-    [name, email, profile_picture, req.user.id], function(err) {
-    if (err) {
-      return res.status(500).json({ message: 'Error updating profile.' });
-    }
+  try {
+    const userRef = db.collection('users').doc(req.user.id);
+    await userRef.update({ name, email, profile_picture });
     res.json({ message: 'Profile updated successfully.', profile_picture });
-  });
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating profile.' });
+  }
 }
 
 // Delete user account
-function deleteAccount(req, res) {
-  db.run('DELETE FROM users WHERE id = ?', [req.user.id], function(err) {
-    if (err) {
-      return res.status(500).json({ message: 'Error deleting account.' });
-    }
+async function deleteAccount(req, res) {
+  try {
+    const userRef = db.collection('users').doc(req.user.id);
+    await userRef.delete();
     res.json({ message: 'Account deleted successfully.' });
-  });
+  } catch (err) {
+    res.status(500).json({ message: 'Error deleting account.' });
+  }
 }
 
 module.exports = {

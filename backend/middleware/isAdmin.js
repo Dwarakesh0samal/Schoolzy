@@ -1,20 +1,18 @@
-const db = require('../db');
+const db = require('../firestore');
 
-module.exports = (req, res, next) => {
+module.exports = async (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Access denied. Authentication required.' });
   }
-
-  db.get('SELECT * FROM admins WHERE user_id = ?', [req.user.id], (err, admin) => {
-    if (err) {
-      return res.status(500).json({ message: 'Database error.' });
-    }
-    
-    if (!admin) {
+  try {
+    const userRef = db.collection('users').doc(req.user.id);
+    const userDoc = await userRef.get();
+    if (!userDoc.exists || userDoc.data().role !== 'admin') {
       return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
     }
-    
-    req.admin = admin;
+    req.admin = userDoc.data();
     next();
-  });
+  } catch (err) {
+    return res.status(500).json({ message: 'Database error.' });
+  }
 }; 

@@ -3,17 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Find your perfect school with Schoolzy - Discover, compare, and review schools in your area">
+    <meta name="keywords" content="schools, education, reviews, find school, school directory">
+    <meta name="author" content="Schoolzy">
+    <meta name="theme-color" content="#667eea">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://schoolzy-k8g7.onrender.com/">
+    <meta property="og:title" content="Schoolzy - Find Your Perfect School">
+    <meta property="og:description" content="Discover, compare, and review schools in your area">
+    <meta property="og:image" content="https://schoolzy-k8g7.onrender.com/og-image.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://schoolzy-k8g7.onrender.com/">
+    <meta property="twitter:title" content="Schoolzy - Find Your Perfect School">
+    <meta property="twitter:description" content="Discover, compare, and review schools in your area">
+    <meta property="twitter:image" content="https://schoolzy-k8g7.onrender.com/og-image.jpg">
+
     <title>Schoolzy - Find Your Perfect School</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="styles.min.css" as="style">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" as="style">
+    <link rel="preload" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" as="style">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 </head>
 <body>
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
-                <i class="fas fa-graduation-cap"></i>
+                <i class="fas fa-graduation-cap" aria-hidden="true"></i>
                 <span>Schoolzy</span>
             </div>
             <div class="nav-menu">
@@ -53,15 +85,15 @@
             <p>Discover, compare, and review schools in your area. Make informed decisions about education.</p>
             <div class="hero-buttons">
                 <button class="btn btn-primary btn-large" onclick="scrollToSection('schools')">
-                    <i class="fas fa-search"></i> Find Schools
+                    <i class="fas fa-search" aria-hidden="true"></i> Find Schools
                 </button>
                 <button class="btn btn-outline btn-large" onclick="scrollToSection('map')">
-                    <i class="fas fa-map-marker-alt"></i> View Map
+                    <i class="fas fa-map-marker-alt" aria-hidden="true"></i> View Map
                 </button>
             </div>
         </div>
         <div class="hero-image">
-            <i class="fas fa-graduation-cap"></i>
+            <i class="fas fa-graduation-cap" aria-hidden="true"></i>
         </div>
     </section>
 
@@ -69,8 +101,8 @@
     <section class="search-section">
         <div class="container">
             <div class="search-box">
-                <input type="text" id="school-search" placeholder="Search schools by name, location, or category...">
-                <select id="category-filter">
+                <input type="text" id="school-search" placeholder="Search schools by name, location, or category..." aria-label="Search schools">
+                <select id="category-filter" aria-label="Filter by category">
                     <option value="">All Categories</option>
                     <option value="Elementary">Elementary</option>
                     <option value="Middle">Middle</option>
@@ -78,14 +110,14 @@
                     <option value="Private">Private</option>
                     <option value="Public">Public</option>
                 </select>
-                <select id="rating-filter">
+                <select id="rating-filter" aria-label="Filter by rating">
                     <option value="">All Ratings</option>
                     <option value="4">4+ Stars</option>
                     <option value="3">3+ Stars</option>
                     <option value="2">2+ Stars</option>
                 </select>
                 <button id="search-btn" class="btn btn-primary">
-                    <i class="fas fa-search"></i> Search
+                    <i class="fas fa-search" aria-hidden="true"></i> Search
                 </button>
             </div>
         </div>
@@ -99,7 +131,7 @@
                 <!-- Schools will be loaded here -->
             </div>
             <div id="loading" class="loading hidden">
-                <i class="fas fa-spinner fa-spin"></i> Loading schools...
+                <i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Loading schools...
             </div>
         </div>
     </section>
@@ -109,17 +141,19 @@
         <div class="container">
             <h2>Find Schools Near You</h2>
             <div class="location-search-box">
-                <input type="text" id="city-search" placeholder="Enter city or location (e.g., Bhubaneswar)">
-                <button id="city-search-btn" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+                <input type="text" id="city-search" placeholder="Enter city or location (e.g., Bhubaneswar)" aria-label="Search by city">
+                <button id="city-search-btn" class="btn btn-primary">
+                    <i class="fas fa-search" aria-hidden="true"></i> Search
+                </button>
             </div>
             <div id="map-container" class="map-container">
                 <!-- Leaflet map will be loaded here -->
             </div>
             <div class="map-controls">
                 <button id="locate-btn" class="btn btn-primary">
-                    <i class="fas fa-location-arrow"></i> Use My Location
+                    <i class="fas fa-location-arrow" aria-hidden="true"></i> Use My Location
                 </button>
-                <input type="number" id="radius-input" placeholder="Radius (km)" value="10" min="1" max="50">
+                <input type="number" id="radius-input" placeholder="Radius (km)" value="10" min="1" max="50" aria-label="Search radius in kilometers">
             </div>
         </div>
     </section>
@@ -149,12 +183,12 @@
             <h2>Login to Schoolzy</h2>
             <div class="auth-options">
                 <button id="google-login" class="btn btn-google">
-                    <i class="fab fa-google"></i> Continue with Google
+                    <i class="fab fa-google" aria-hidden="true"></i> Continue with Google
                 </button>
                 <div class="divider">or</div>
                 <form id="login-form" class="auth-form">
-                    <input type="email" id="login-email" placeholder="Email" required>
-                    <input type="password" id="login-password" placeholder="Password" required>
+                    <input type="email" id="login-email" placeholder="Email" required aria-label="Email address">
+                    <input type="password" id="login-password" placeholder="Password" required aria-label="Password">
                     <button type="submit" class="btn btn-primary">Login</button>
                 </form>
             </div>
@@ -168,13 +202,13 @@
             <h2>Join Schoolzy</h2>
             <div class="auth-options">
                 <button id="google-register" class="btn btn-google">
-                    <i class="fab fa-google"></i> Continue with Google
+                    <i class="fab fa-google" aria-hidden="true"></i> Continue with Google
                 </button>
                 <div class="divider">or</div>
                 <form id="register-form" class="auth-form">
-                    <input type="text" id="register-name" placeholder="Full Name" required>
-                    <input type="email" id="register-email" placeholder="Email" required>
-                    <input type="password" id="register-password" placeholder="Password" required>
+                    <input type="text" id="register-name" placeholder="Full Name" required aria-label="Full name">
+                    <input type="email" id="register-email" placeholder="Email" required aria-label="Email address">
+                    <input type="password" id="register-password" placeholder="Password" required aria-label="Password">
                     <button type="submit" class="btn btn-primary">Register</button>
                 </form>
             </div>
@@ -187,11 +221,11 @@
             <span class="close">&times;</span>
             <h2>Edit Profile</h2>
             <form id="edit-profile-form" class="auth-form" enctype="multipart/form-data">
-                <input type="text" id="edit-name" placeholder="Full Name" required>
-                <input type="email" id="edit-email" placeholder="Email" required>
+                <input type="text" id="edit-name" placeholder="Full Name" required aria-label="Full name">
+                <input type="email" id="edit-email" placeholder="Email" required aria-label="Email address">
                 <div class="profile-pic-upload">
                     <label for="edit-profile-picture">Profile Picture:</label>
-                    <input type="file" id="edit-profile-picture" accept="image/*">
+                    <input type="file" id="edit-profile-picture" accept="image/*" aria-label="Upload profile picture">
                     <img id="edit-profile-preview" src="" alt="Preview" class="profile-pic-preview hidden">
                 </div>
                 <button type="submit" class="btn btn-primary">Save Changes</button>
@@ -251,32 +285,44 @@
 
     <!-- Footer -->
     <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>Schoolzy</h3>
-                    <p>Your trusted partner in educational discovery.</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Quick Links</h4>
-                    <a href="#home">Home</a>
-                    <a href="#schools">Schools</a>
-                    <a href="#map">Map</a>
-                    <a href="#about">About</a>
-                </div>
-                <div class="footer-section">
-                    <h4>Contact</h4>
-                    <p>Email: info@schoolzy.com</p>
-                    <p>Phone: (555) 123-4567</p>
-                </div>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Schoolzy</h3>
+                <p>Your trusted partner in finding the perfect educational institution for your child's future.</p>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 Schoolzy. All rights reserved.</p>
+            <div class="footer-section">
+                <strong>Quick Links</strong>
+                <a href="#home">Home</a>
+                <a href="#schools">Schools</a>
+                <a href="#map">Map</a>
+                <a href="#about">About</a>
             </div>
+            <div class="footer-section">
+                <strong>Support</strong>
+                <a href="/contact">Contact Us</a>
+                <a href="/help">Help Center</a>
+                <a href="/privacy">Privacy Policy</a>
+                <a href="/terms">Terms of Service</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Schoolzy. All rights reserved. Made with ❤️ for better education discovery.</p>
         </div>
     </footer>
 
+    <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="app.js"></script>
+    <script src="app.min.js"></script>
+    
+    <!-- Service Worker for PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(error => console.log('SW registration failed'));
+            });
+        }
+    </script>
 </body>
 </html> 

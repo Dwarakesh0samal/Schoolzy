@@ -15,30 +15,43 @@ async function getAllUsers(req, res) {
 // Get admin dashboard statistics
 async function getDashboardStats(req, res) {
   try {
-    const stats = {};
-    // Total users
-    const usersSnapshot = await db.collection('users').get();
-    stats.totalUsers = usersSnapshot.docs.length;
-    // Total schools
-    const schoolsSnapshot = await db.collection('schools').get();
-    stats.totalSchools = schoolsSnapshot.docs.length;
-    // Total reviews
-    const reviewsSnapshot = await db.collection('reviews').get();
-    stats.totalReviews = reviewsSnapshot.docs.length;
-    // Average school rating
-    const ratedSchools = schoolsSnapshot.docs.map(doc => doc.data().rating).filter(r => typeof r === 'number');
-    const totalRatings = ratedSchools.reduce((a, b) => a + b, 0);
-    stats.averageRating = ratedSchools.length ? totalRatings / ratedSchools.length : 0;
-    // Recent reviews (last 7 days)
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const recentReviews = reviewsSnapshot.docs.filter(doc => {
-      const data = doc.data();
-      return data.created_at && data.created_at.toDate() >= weekAgo;
-    });
-    stats.recentReviews = recentReviews.length;
+    const [schoolsSnapshot, usersSnapshot, reviewsSnapshot] = await Promise.all([
+      db.collection('schools').get(),
+      db.collection('users').get(),
+      db.collection('reviews').get()
+    ]);
+
+    const stats = {
+      totalSchools: schoolsSnapshot.size,
+      totalUsers: usersSnapshot.size,
+      totalReviews: reviewsSnapshot.size,
+      averageSchoolRating: 0,
+      recentActivity: []
+    };
+
+    // Calculate average school rating
+    if (schoolsSnapshot.size > 0) {
+      const totalRating = schoolsSnapshot.docs.reduce((sum, doc) => {
+        const data = doc.data();
+        return sum + (data.averageRating || 0);
+      }, 0);
+      stats.averageSchoolRating = Math.round((totalRating / schoolsSnapshot.size) * 10) / 10;
+    }
+
+    // Get recent reviews for activity feed
+    const recentReviews = reviewsSnapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 10);
+
+    stats.recentActivity = recentReviews;
+
     res.json(stats);
-  } catch (err) {
-    res.status(500).json({ message: 'Error fetching dashboard stats.', error: err.message });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error fetching dashboard stats',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 }
 
@@ -135,6 +148,253 @@ async function removeAdmin(req, res) {
   }
 }
 
+// Get all schools (admin view)
+const getAllSchools = async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const snapshot = await db.collection('schools').get();
+    
+    const schools = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    // Apply pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedSchools = schools.slice(startIndex, endIndex);
+
+    res.json({
+      schools: paginatedSchools,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(schools.length / limit),
+        totalSchools: schools.length,
+        hasNext: endIndex < schools.length,
+        hasPrev: page > 1
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error fetching schools',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Create school (admin)
+const createSchool = async (req, res) => {
+  try {
+    const schoolData = {
+      ...req.body,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      averageRating: 0,
+      reviewCount: 0
+    };
+
+    const docRef = await db.collection('schools').add(schoolData);
+    res.status(201).json({ 
+      message: 'School created successfully',
+      id: docRef.id,
+      school: { id: docRef.id, ...schoolData }
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error creating school',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Update school (admin)
+const updateSchool = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = {
+      ...req.body,
+      updatedAt: new Date().toISOString()
+    };
+
+    const docRef = db.collection('schools').doc(id);
+    const doc = await docRef.get();
+    
+    if (!doc.exists) {
+      return res.status(404).json({ message: 'School not found' });
+    }
+
+    await docRef.update(updateData);
+    res.json({ 
+      message: 'School updated successfully',
+      id,
+      school: { id, ...updateData }
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error updating school',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Delete school (admin)
+const deleteSchool = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const docRef = db.collection('schools').doc(id);
+    const doc = await docRef.get();
+    
+    if (!doc.exists) {
+      return res.status(404).json({ message: 'School not found' });
+    }
+
+    // Delete associated reviews
+    const reviewsSnapshot = await db.collection('reviews')
+      .where('schoolId', '==', id)
+      .get();
+    
+    const deletePromises = reviewsSnapshot.docs.map(doc => doc.ref.delete());
+    await Promise.all(deletePromises);
+
+    // Delete the school
+    await docRef.delete();
+    res.json({ message: 'School and associated reviews deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error deleting school',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Get all reviews (admin view)
+const getAllReviews = async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const snapshot = await db.collection('reviews')
+      .orderBy('createdAt', 'desc')
+      .get();
+    
+    const reviews = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    // Apply pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedReviews = reviews.slice(startIndex, endIndex);
+
+    res.json({
+      reviews: paginatedReviews,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(reviews.length / limit),
+        totalReviews: reviews.length,
+        hasNext: endIndex < reviews.length,
+        hasPrev: page > 1
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error fetching reviews',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Delete review (admin)
+const deleteReview = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const docRef = db.collection('reviews').doc(id);
+    const doc = await docRef.get();
+    
+    if (!doc.exists) {
+      return res.status(404).json({ message: 'Review not found' });
+    }
+
+    const reviewData = doc.data();
+    await docRef.delete();
+
+    // Update school's average rating
+    await updateSchoolRating(reviewData.schoolId);
+
+    res.json({ message: 'Review deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error deleting review',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Get system health
+const getSystemHealth = async (req, res) => {
+  try {
+    const health = {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      environment: process.env.NODE_ENV || 'development'
+    };
+
+    res.json(health);
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error checking system health',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Seed data
+const seedData = async (req, res) => {
+  try {
+    const { seedSchools, seedUsers } = require('../seedData');
+    
+    if (seedSchools) await seedSchools();
+    if (seedUsers) await seedUsers();
+    
+    res.json({ message: 'Data seeded successfully' });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error seeding data',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Helper function to update school rating
+const updateSchoolRating = async (schoolId) => {
+  try {
+    const reviewsSnapshot = await db.collection('reviews')
+      .where('schoolId', '==', schoolId)
+      .get();
+
+    const reviews = reviewsSnapshot.docs.map(doc => doc.data());
+    
+    if (reviews.length === 0) {
+      await db.collection('schools').doc(schoolId).update({
+        averageRating: 0,
+        reviewCount: 0
+      });
+      return;
+    }
+
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = totalRating / reviews.length;
+
+    await db.collection('schools').doc(schoolId).update({
+      averageRating: Math.round(averageRating * 10) / 10,
+      reviewCount: reviews.length
+    });
+  } catch (error) {
+    console.error('Error updating school rating:', error);
+  }
+};
+
 module.exports = {
   getAllUsers,
   getDashboardStats,
@@ -142,5 +402,13 @@ module.exports = {
   deleteUser,
   getRecentActivity,
   getAdmins,
-  removeAdmin
+  removeAdmin,
+  getAllSchools,
+  createSchool,
+  updateSchool,
+  deleteSchool,
+  getAllReviews,
+  deleteReview,
+  getSystemHealth,
+  seedData
 }; 

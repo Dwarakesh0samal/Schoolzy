@@ -2,145 +2,242 @@ const db = require('../firestore');
 const schoolController = require('./schoolController');
 const { FieldValue } = require('firebase-admin').firestore;
 
-// Get reviews for a school
-async function getReviewsForSchool(req, res) {
-  const { schoolId } = req.params;
+// Get reviews for a specific school
+const getReviewsBySchool = async (req, res) => {
   try {
-    const reviewsRef = db.collection('reviews');
-    const snapshot = await reviewsRef.where('schoolId', '==', schoolId).orderBy('createdAt', 'desc').get();
-    const reviews = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    res.json(reviews);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching reviews.' });
-  }
-}
+    const { schoolId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
 
-// Get user's reviews
-async function getUserReviews(req, res) {
-  const userId = req.user.id;
-  try {
-    const reviewsRef = db.collection('reviews');
-    const snapshot = await reviewsRef.where('userId', '==', userId).orderBy('createdAt', 'desc').get();
-    const reviews = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    res.json(reviews);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching user reviews.' });
-  }
-}
+    const snapshot = await db.collection('reviews')
+      .where('schoolId', '==', schoolId)
+      .orderBy('createdAt', 'desc')
+      .get();
 
-// Add a review
-async function addReview(req, res) {
+    const reviews = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    // Apply pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedReviews = reviews.slice(startIndex, endIndex);
+
+    res.json({
+      reviews: paginatedReviews,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(reviews.length / limit),
+        totalReviews: reviews.length,
+        hasNext: endIndex < reviews.length,
+        hasPrev: page > 1
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error loading reviews',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Create a new review
+const createReview = async (req, res) => {
   try {
-    const schoolId = req.params.schoolId;
-    const userId = req.user.id;
+    const { schoolId } = req.params;
     const { rating, review_text } = req.body;
-    const userName = req.user.name || '';
-    const userProfilePicture = req.user.profile_picture || '';
-    if (!rating || rating < 1 || rating > 5) {
-      return res.status(400).json({ message: 'Rating must be between 1 and 5.' });
+    const userId = req.user.id;
+
+    // Check if user already reviewed this school
+    const existingReview = await db.collection('reviews')
+      .where('schoolId', '==', schoolId)
+      .where('userId', '==', userId)
+      .get();
+
+    if (!existingReview.empty) {
+      return res.status(400).json({ message: 'You have already reviewed this school' });
     }
-    await db.collection('reviews').add({
+
+    // Get user info
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userData = userDoc.data();
+
+    const reviewData = {
       schoolId,
       userId,
-      user_name: userName,
-      user_profile_picture: userProfilePicture,
-      rating,
+      user_name: userData.name,
+      user_profile_picture: userData.profile_picture || '',
+      rating: parseInt(rating),
       review_text,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const docRef = await db.collection('reviews').add(reviewData);
+
+    // Update school's average rating
+    await updateSchoolRating(schoolId);
+
+    res.status(201).json({ 
+      message: 'Review created successfully',
+      id: docRef.id,
+      review: { id: docRef.id, ...reviewData }
     });
-    await schoolController.updateSchoolRating(schoolId);
-    res.json({ message: 'Review added' });
   } catch (error) {
-    res.status(500).json({ message: 'Error adding review.' });
+    res.status(500).json({ 
+      message: 'Error creating review',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
-}
+};
 
 // Update a review
-async function updateReview(req, res) {
-  const { reviewId } = req.params;
-  const { rating, review_text } = req.body;
-  const userId = req.user.id;
-  if (!rating || rating < 1 || rating > 5) {
-    return res.status(400).json({ message: 'Rating must be between 1 and 5.' });
-  }
+const updateReview = async (req, res) => {
   try {
-    const reviewRef = db.collection('reviews').doc(reviewId);
-    const reviewDoc = await reviewRef.get();
-    if (!reviewDoc.exists || reviewDoc.data().userId !== userId) {
-      return res.status(404).json({ message: 'Review not found or unauthorized.' });
+    const { id } = req.params;
+    const { rating, review_text } = req.body;
+    const userId = req.user.id;
+
+    const docRef = db.collection('reviews').doc(id);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ message: 'Review not found' });
     }
-    await reviewRef.update({
-      rating,
+
+    const reviewData = doc.data();
+    if (reviewData.userId !== userId) {
+      return res.status(403).json({ message: 'You can only update your own reviews' });
+    }
+
+    const updateData = {
+      rating: parseInt(rating),
       review_text,
       updatedAt: new Date().toISOString()
+    };
+
+    await docRef.update(updateData);
+
+    // Update school's average rating
+    await updateSchoolRating(reviewData.schoolId);
+
+    res.json({ 
+      message: 'Review updated successfully',
+      id,
+      review: { id, ...reviewData, ...updateData }
     });
-    await schoolController.updateSchoolRating(reviewDoc.data().schoolId);
-    res.json({ message: 'Review updated successfully.' });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating review.' });
+    res.status(500).json({ 
+      message: 'Error updating review',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
-}
+};
 
 // Delete a review
-async function deleteReview(req, res) {
-  const { reviewId } = req.params;
-  const userId = req.user.id;
+const deleteReview = async (req, res) => {
   try {
-    const reviewRef = db.collection('reviews').doc(reviewId);
-    const reviewDoc = await reviewRef.get();
-    if (!reviewDoc.exists || reviewDoc.data().userId !== userId) {
-      return res.status(404).json({ message: 'Review not found or unauthorized.' });
-    }
-    const schoolId = reviewDoc.data().schoolId;
-    await reviewRef.delete();
-    await schoolController.updateSchoolRating(schoolId);
-    res.json({ message: 'Review deleted successfully.' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error deleting review.' });
-  }
-}
+    const { id } = req.params;
+    const userId = req.user.id;
 
-// Get all reviews (admin only)
-async function getAllReviews(req, res) {
-  const { page = 1, limit = 20 } = req.query;
-  const limitNum = parseInt(limit);
-  const offset = (page - 1) * limitNum;
-  try {
-    const reviewsRef = db.collection('reviews').orderBy('createdAt', 'desc');
-    const snapshot = await reviewsRef.get();
-    let reviews = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    // Pagination
-    reviews = reviews.slice(offset, offset + limitNum);
-    res.json(reviews);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching reviews.' });
-  }
-}
+    const docRef = db.collection('reviews').doc(id);
+    const doc = await docRef.get();
 
-// Delete review (admin only)
-async function adminDeleteReview(req, res) {
-  const { reviewId } = req.params;
-  try {
-    const reviewRef = db.collection('reviews').doc(reviewId);
-    const reviewDoc = await reviewRef.get();
-    if (!reviewDoc.exists) {
-      return res.status(404).json({ message: 'Review not found.' });
+    if (!doc.exists) {
+      return res.status(404).json({ message: 'Review not found' });
     }
-    const schoolId = reviewDoc.data().schoolId;
-    await reviewRef.delete();
-    await schoolController.updateSchoolRating(schoolId);
-    res.json({ message: 'Review deleted successfully.' });
+
+    const reviewData = doc.data();
+    if (reviewData.userId !== userId) {
+      return res.status(403).json({ message: 'You can only delete your own reviews' });
+    }
+
+    await docRef.delete();
+
+    // Update school's average rating
+    await updateSchoolRating(reviewData.schoolId);
+
+    res.json({ message: 'Review deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting review.' });
+    res.status(500).json({ 
+      message: 'Error deleting review',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
-}
+};
+
+// Get user's reviews
+const getUserReviews = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { page = 1, limit = 10 } = req.query;
+
+    const snapshot = await db.collection('reviews')
+      .where('userId', '==', userId)
+      .orderBy('createdAt', 'desc')
+      .get();
+
+    const reviews = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    // Apply pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedReviews = reviews.slice(startIndex, endIndex);
+
+    res.json({
+      reviews: paginatedReviews,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(reviews.length / limit),
+        totalReviews: reviews.length,
+        hasNext: endIndex < reviews.length,
+        hasPrev: page > 1
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error loading user reviews',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Helper function to update school's average rating
+const updateSchoolRating = async (schoolId) => {
+  try {
+    const reviewsSnapshot = await db.collection('reviews')
+      .where('schoolId', '==', schoolId)
+      .get();
+
+    const reviews = reviewsSnapshot.docs.map(doc => doc.data());
+    
+    if (reviews.length === 0) {
+      await db.collection('schools').doc(schoolId).update({
+        averageRating: 0,
+        reviewCount: 0
+      });
+      return;
+    }
+
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = totalRating / reviews.length;
+
+    await db.collection('schools').doc(schoolId).update({
+      averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
+      reviewCount: reviews.length
+    });
+  } catch (error) {
+    console.error('Error updating school rating:', error);
+  }
+};
 
 module.exports = {
-  getReviewsForSchool,
-  getUserReviews,
-  addReview,
+  getReviewsBySchool,
+  createReview,
   updateReview,
   deleteReview,
-  getAllReviews,
-  adminDeleteReview
+  getUserReviews
 }; 
