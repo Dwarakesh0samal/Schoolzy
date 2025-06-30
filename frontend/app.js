@@ -4,8 +4,11 @@ let currentUser = null;
 let schools = [];
 let markers = [];
 
-// API base URL - use configuration from config.js
-const API_BASE = window.SCHOOLZY_CONFIG ? window.SCHOOLZY_CONFIG.API_BASE_URL : '/api';
+// API base URL - use Vite env if available
+const API_BASE = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL + '/api'
+  : (window.SCHOOLZY_CONFIG ? window.SCHOOLZY_CONFIG.API_BASE_URL : '/api');
+console.log('API_BASE:', API_BASE);
 
 // Loading state management
 let isLoading = false;
@@ -340,11 +343,23 @@ function updateUIForUnauthenticatedUser() {
 
 // Modal functions
 function showModal(modalId) {
-    document.getElementById(modalId).classList.remove('hidden');
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('hidden');
+        console.log(`Opened modal: ${modalId}`);
+    } else {
+        console.warn(`Modal not found: ${modalId}`);
+    }
 }
 
 function hideModal(modalId) {
-    document.getElementById(modalId).classList.add('hidden');
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('hidden');
+        console.log(`Closed modal: ${modalId}`);
+    } else {
+        console.warn(`Modal not found: ${modalId}`);
+    }
 }
 
 function hideAllModals() {
