@@ -65,8 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (findSchoolsBtn) {
         findSchoolsBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('Find Schools button clicked');
-            window.scrollToSection('schools');
+            window.location.href = 'schools.html';
         });
     } else {
         console.warn('Find Schools button (#findSchoolsBtn) not found');
@@ -77,8 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (viewMapBtn) {
         viewMapBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('View Map button clicked');
-            window.scrollToSection('map');
+            window.location.href = 'map.html';
         });
     } else {
         console.warn('View Map button (#viewMapBtn) not found');
@@ -89,8 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (loginBtn) {
         loginBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('Login button clicked');
-            window.showModal('login-modal');
+            window.location.href = 'login.html';
         });
     } else {
         console.warn('Login button (#login-btn) not found');
@@ -101,8 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (registerBtn) {
         registerBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('Register button clicked');
-            window.showModal('register-modal');
+            window.location.href = 'register.html';
         });
     } else {
         console.warn('Register button (#register-btn) not found');
@@ -495,15 +491,25 @@ async function showSchoolDetails(schoolId) {
 // Map functions
 function initializeMap() {
     const mapContainer = document.getElementById('map-container');
-    
-    if (!mapContainer) return;
-    
+    if (!mapContainer) {
+        console.error('Map container not found!');
+        return;
+    }
+    // Prevent double initialization
+    if (window.map) {
+        window.map.invalidateSize();
+        return;
+    }
+    // Ensure container is visible and has height
+    mapContainer.style.display = 'block';
+    mapContainer.style.height = '500px';
+
     // Center map on Bhubaneswar
-    map = L.map('map-container').setView([20.2961, 85.8245], 13); // Bhubaneswar
-    
+    window.map = L.map('map-container').setView([20.2961, 85.8245], 13);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+    }).addTo(window.map);
 }
 
 // Helper function to clear map error messages
@@ -544,13 +550,15 @@ async function loadSchoolsOnMap() {
                 !isNaN(school.longitude)
             ) {
                 const marker = L.marker([school.latitude, school.longitude])
-                    .addTo(map)
+                    .addTo(window.map)
                     .bindPopup(`<b>${school.name}</b><br>${school.location}`);
                 window.markers.push(marker);
             } else {
                 console.warn('Skipping school with invalid coordinates:', school);
             }
         });
+        // Force map to resize in case container was hidden
+        setTimeout(() => { window.map.invalidateSize(); }, 500);
     } catch (err) {
         console.error('Error loading map data:', err);
         showErrorToast('Error loading schools. Please try again.');
@@ -625,88 +633,56 @@ function handleCitySearch() {
 // Event listeners
 function setupEventListeners() {
     // Navigation
-    document.getElementById('login-btn').addEventListener('click', () => showModal('login-modal'));
-    document.getElementById('register-btn').addEventListener('click', () => showModal('register-modal'));
-    document.getElementById('logout-btn').addEventListener('click', logout);
-    
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) loginBtn.addEventListener('click', function() { window.location.href = 'login.html'; });
+    const registerBtn = document.getElementById('register-btn');
+    if (registerBtn) registerBtn.addEventListener('click', function() { window.location.href = 'register.html'; });
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) logoutBtn.addEventListener('click', logout);
     // Google OAuth
-    document.getElementById('google-login').addEventListener('click', () => {
-        window.location.href = `${API_BASE}/auth/google`;
-    });
-    document.getElementById('google-register').addEventListener('click', () => {
-        window.location.href = `${API_BASE}/auth/google`;
-    });
-    
+    const googleLogin = document.getElementById('google-login');
+    if (googleLogin) googleLogin.addEventListener('click', function() { window.location.href = `${API_BASE}/auth/google`; });
+    const googleRegister = document.getElementById('google-register');
+    if (googleRegister) googleRegister.addEventListener('click', function() { window.location.href = `${API_BASE}/auth/google`; });
     // Forms
-    document.getElementById('login-form').addEventListener('submit', handleLogin);
-    document.getElementById('register-form').addEventListener('submit', handleRegister);
-    
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) loginForm.addEventListener('submit', handleLogin);
+    const registerForm = document.getElementById('register-form');
+    if (registerForm) registerForm.addEventListener('submit', handleRegister);
     // Search
-    document.getElementById('search-btn').addEventListener('click', handleSearch);
-    
+    const searchBtn = document.getElementById('search-btn');
+    if (searchBtn) searchBtn.addEventListener('click', handleSearch);
     // Map controls
-    document.getElementById('locate-btn').addEventListener('click', handleLocation);
-    
-    // Modals
-    document.querySelectorAll('.close').forEach(closeBtn => {
-        closeBtn.addEventListener('click', () => {
-            hideAllModals();
-        });
-    });
-    
-    document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                hideAllModals();
-            }
-        });
-    });
-    
+    const locateBtn = document.getElementById('locate-btn');
+    if (locateBtn) locateBtn.addEventListener('click', handleLocation);
+    // Modals (remove modal code, use navigation instead)
     // Search on Enter key
-    document.getElementById('school-search').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            handleSearch();
-        }
-    });
-    
+    const schoolSearch = document.getElementById('school-search');
+    if (schoolSearch) schoolSearch.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSearch(); });
     // City/location search
-    document.getElementById('city-search-btn').addEventListener('click', handleCitySearch);
-    document.getElementById('city-search').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            handleCitySearch();
-        }
-    });
-    
+    const citySearchBtn = document.getElementById('city-search-btn');
+    if (citySearchBtn) citySearchBtn.addEventListener('click', handleCitySearch);
+    const citySearch = document.getElementById('city-search');
+    if (citySearch) citySearch.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleCitySearch(); });
     // Edit Profile
-    document.getElementById('edit-profile-btn').addEventListener('click', openEditProfileModal);
-    document.getElementById('edit-profile-form').addEventListener('submit', handleEditProfileSubmit);
-    document.getElementById('edit-profile-picture').addEventListener('change', handleProfilePicPreview);
-    
+    const editProfileBtn = document.getElementById('edit-profile-btn');
+    if (editProfileBtn) editProfileBtn.addEventListener('click', openEditProfileModal);
+    const editProfileForm = document.getElementById('edit-profile-form');
+    if (editProfileForm) editProfileForm.addEventListener('submit', handleEditProfileSubmit);
+    const editProfilePicture = document.getElementById('edit-profile-picture');
+    if (editProfilePicture) editProfilePicture.addEventListener('change', handleProfilePicPreview);
     // Profile dropdown toggle
     const userInfo = document.getElementById('user-info');
     const dropdown = document.getElementById('profile-dropdown');
-
-    userInfo.addEventListener('click', function(e) {
-        e.stopPropagation(); // Prevent document click from firing
-        dropdown.classList.toggle('hidden');
-    });
-
-    document.addEventListener('click', function(e) {
-        if (!dropdown.classList.contains('hidden')) {
+    if (userInfo && dropdown) {
+        userInfo.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
+        document.addEventListener('click', function() {
             dropdown.classList.add('hidden');
-        }
-    });
-    
-    // Profile menu options
-    document.getElementById('profile-edit-btn').addEventListener('click', () => {
-        openEditProfileModal();
-        document.getElementById('profile-dropdown').classList.add('hidden');
-    });
-    document.getElementById('profile-verify-btn').addEventListener('click', () => {
-        alert('Email verification feature coming soon!');
-        document.getElementById('profile-dropdown').classList.add('hidden');
-    });
-    document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+        });
+    }
 }
 
 // Form handlers
