@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schoolzy - Map</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    /* Map container styling for map.html */
+    #map-container, .map-container {
+      height: 80vh;
+      width: 100%;
+      max-width: 1200px;
+      margin: 2rem auto;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      background: #f8f9fa;
+      min-height: 350px;
+      position: relative;
+      z-index: 1;
+    }
+    @media (max-width: 700px) {
+      #map-container, .map-container {
+        height: 60vh;
+        min-height: 200px;
+        margin: 1rem 0.5rem;
+      }
+    }
+    .leaflet-control {
+      font-size: 1rem;
+    }
+    .leaflet-popup-content-wrapper {
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+      font-family: inherit;
+    }
+    .leaflet-popup-content {
+      font-size: 1.1rem;
+      color: #333;
+    }
+    .leaflet-marker-icon.user-location {
+      filter: hue-rotate(180deg) brightness(1.2);
+    }
+    /* Modern blue navigation bar styling */
+    nav {
+      background: linear-gradient(90deg, #667eea 0%, #5a67d8 100%);
+      color: #fff;
+      padding: 1rem 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 1.1rem;
+      margin-bottom: 0;
+    }
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      margin: 0 1.2rem;
+      font-weight: 500;
+      transition: color 0.2s;
+      border-bottom: 2px solid transparent;
+      padding-bottom: 2px;
+    }
+    nav a:hover, nav a.active {
+      color: #ffe066;
+      border-bottom: 2px solid #ffe066;
+    }
+    h1 {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: 2.5rem;
+      color: #2d3748;
+      letter-spacing: 0.5px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    body {
+      background: #f7f8fa;
+      margin: 0;
+    }
+    .nav-logo-img {
+      height: 48px;
+      width: auto;
+      display: block;
+      margin-left: 12px;
+      margin-right: 0;
+      padding: 0;
+      box-shadow: none;
+      background: none;
+      border: none;
+      object-fit: contain;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      height: 100%;
+      text-decoration: none;
+    }
+    .navbar-ui {
+      background: linear-gradient(90deg, #667eea 0%, #5a67d8 100%);
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+      padding: 0.7rem 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
+      position: relative;
+      z-index: 10;
+    }
+    .navbar-search-form {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #fff;
+      border-radius: 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 0.15rem 0.5rem 0.15rem 1rem;
+      margin: 0 1.5rem 0 0;
+      min-width: 260px;
+      max-width: 400px;
+      flex: 1 1 320px;
+    }
+    .navbar-search-form input[type="text"] {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 1.08rem;
+      padding: 0.6rem 0.2rem;
+      flex: 1;
+      min-width: 120px;
+    }
+    .navbar-search-form button {
+      background: #667eea;
+      color: #fff;
+      border: none;
+      border-radius: 1.5rem;
+      padding: 0.5rem 1.3rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.18s;
+      box-shadow: 0 1px 4px rgba(102,126,234,0.08);
+    }
+    .navbar-search-form button:hover {
+      background: #5a67d8;
+    }
+    .navbar-link {
+      color: #fff;
+      font-weight: 600;
+      font-size: 1.13rem;
+      text-decoration: none;
+      margin-left: 1.5rem;
+      transition: color 0.18s;
+    }
+    .navbar-link:hover {
+      color: #ffe066;
+    }
+    @media (max-width: 800px) {
+      .navbar-ui {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 1rem 0.5rem;
+        gap: 1rem;
+      }
+      .navbar-search-form {
+        margin: 0.5rem 0;
+        min-width: 0;
+        max-width: 100%;
+      }
+      .navbar-link {
+        margin-left: 0;
+        margin-top: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar-ui">
+    <a href="index.html" class="nav-logo">
+      <img src="logo.png" alt="Schoolzy Logo" class="nav-logo-img" />
+    </a>
+    <form id="navbar-search-form" class="navbar-search-form">
+      <input type="text" id="city-search" placeholder="Enter city (e.g. Delhi, Mumbai)">
+      <button id="city-search-btn" class="btn btn-primary" type="button">Search</button>
+    </form>
+    <a href="schools.html" class="navbar-link">Schools</a>
+  </nav>
+  <section class="map-section">
+    <div class="container">
+      <h2 class="map-title">Find Schools Near You</h2>
+      <div id="map-container" class="map-container"></div>
+    </div>
+  </section>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
+  <script>
+    let map, userMarker, schoolMarkers = [];
+    
+    // Custom icons for different school types - all red
+    const schoolIcons = {
+      'Private': L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      }),
+      'Public': L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      })
+    };
+
+    function clearSchoolMarkers() {
+      schoolMarkers.forEach(marker => {
+        if (map && map.hasLayer(marker)) {
+          map.removeLayer(marker);
+        }
+      });
+      schoolMarkers = [];
+    }
+
+    async function loadSchoolsInCity(city) {
+      try {
+        const response = await fetch(`/api/schools/search/city?city=${encodeURIComponent(city)}`);
+        const data = await response.json();
+        return data.schools || [];
+      } catch (error) {
+        console.error('Error loading schools:', error);
+        return [];
+      }
+    }
+
+    function addSchoolMarkers(schools) {
+      clearSchoolMarkers();
+      
+      schools.forEach(school => {
+        if (school.latitude && school.longitude) {
+          const icon = schoolIcons[school.type] || schoolIcons['Private'];
+          const marker = L.marker([school.latitude, school.longitude], { icon })
+            .bindPopup(`
+              <div style="min-width: 200px;">
+                <h3 style="margin: 0 0 8px 0; color: #2d3748;">${school.name}</h3>
+                <p style="margin: 4px 0; color: #4a5568;"><strong>Type:</strong> ${school.type}</p>
+                <p style="margin: 4px 0; color: #4a5568;"><strong>Category:</strong> ${school.category}</p>
+                <p style="margin: 4px 0; color: #4a5568;"><strong>Rating:</strong> ⭐ ${school.averageRating}/5 (${school.reviewCount} reviews)</p>
+                <p style="margin: 4px 0; color: #4a5568;"><strong>Address:</strong> ${school.address}</p>
+              </div>
+            `);
+          
+          schoolMarkers.push(marker);
+          marker.addTo(map);
+        }
+      });
+    }
+
+    function showMap(lat, lng, city = null) {
+      // Always remove any existing map instance before creating a new one
+      if (map) {
+        map.remove();
+        map = null;
+      }
+      
+      map = L.map('map-container').setView([lat, lng], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+      
+      // Custom blue icon for user location
+      const userIcon = L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      });
+      
+      if (userMarker) {
+        userMarker.setLatLng([lat, lng]);
+      } else {
+        userMarker = L.marker([lat, lng], {icon: userIcon}).addTo(map).bindPopup('You are here!').openPopup();
+      }
+
+      // Load and display schools if city is provided
+      if (city) {
+        loadSchoolsInCity(city).then(schools => {
+          addSchoolMarkers(schools);
+        });
+      }
+
+      // Optional: Smooth scroll map into view
+      const mapDiv = document.getElementById('map-container');
+      if (mapDiv) {
+        mapDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    async function geocodeCity(city) {
+      try {
+        const url = `/api/schools/geocode?city=${encodeURIComponent(city)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if (data && data.length > 0) {
+          // Prefer a result with type or addresstype 'city'
+          let cityResult = data.find(
+            item => item.type === 'city' || item.addresstype === 'city'
+          );
+          if (!cityResult) cityResult = data[0]; // fallback to first
+          return { 
+            lat: parseFloat(cityResult.lat), 
+            lon: parseFloat(cityResult.lon),
+            displayName: cityResult.display_name
+          };
+        } else {
+          return null;
+        }
+      } catch (e) {
+        console.error('Geocoding error:', e);
+        return null;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      let defaultLat = 20.2961, defaultLng = 85.8245; // Bhubaneswar
+      
+      // Initialize map with current location or default
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => showMap(pos.coords.latitude, pos.coords.longitude),
+          err => showMap(defaultLat, defaultLng)
+        );
+      } else {
+        showMap(defaultLat, defaultLng);
+      }
+
+      // Handle city search
+      const searchBtn = document.getElementById('city-search-btn');
+      const searchInput = document.getElementById('city-search');
+      
+      searchBtn.addEventListener('click', async function() {
+        const city = searchInput.value.trim();
+        if (!city) {
+          alert('Please enter a city name.');
+          return;
+        }
+        
+        searchBtn.textContent = 'Searching...';
+        searchBtn.disabled = true;
+        
+        const coords = await geocodeCity(city);
+        if (coords) {
+          showMap(coords.lat, coords.lon, city);
+        } else {
+          alert('City not found. Please try another name.');
+        }
+        
+        searchBtn.textContent = 'Search';
+        searchBtn.disabled = false;
+      });
+
+      // Handle Enter key in search input
+      searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          searchBtn.click();
+        }
+      });
+    });
+  </script>
+</body>
+</html> 

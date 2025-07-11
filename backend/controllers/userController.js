@@ -31,19 +31,63 @@ async function registerUser(req, res) {
 
 // Login user
 async function loginUser(req, res) {
+  // Log the received request body
+  console.log('LOGIN REQ BODY:', req.body);
   const { email, password } = req.body;
+
+  // Fallback demo login
+  if (email === 'demo@schoolzy.com' && password === 'demo123') {
+    const demoUser = {
+      id: 'demo12345',
+      name: 'Demo User',
+      email: 'demo@schoolzy.com',
+      role: 'user'
+    };
+    const token = jwt.sign(
+      {
+        id: demoUser.id,
+        email: demoUser.email,
+        name: demoUser.name,
+        role: demoUser.role
+      },
+      process.env.JWT_SECRET || 'schoolzy_jwt_secret',
+      { expiresIn: '1d' }
+    );
+    return res.status(200).json({ user: demoUser, token });
+  }
+
   if (!email || !password) {
     return res.status(400).json({ message: 'Email and password are required.' });
   }
   try {
     const usersRef = db.collection('users');
-    const snapshot = await usersRef.where('email', '==', email).get();
+    let snapshot;
+    try {
+      snapshot = await usersRef.where('email', '==', email).get();
+      // Log Firestore snapshot
+      console.log('USER SNAPSHOT EMPTY:', snapshot.empty);
+      if (!snapshot.empty) {
+        console.log('USER DATA:', snapshot.docs[0].data());
+      }
+    } catch (firestoreErr) {
+      console.error('FIRESTORE ERROR:', firestoreErr);
+      return res.status(500).json({ message: 'Firestore error', error: firestoreErr.message || firestoreErr });
+    }
     if (snapshot.empty) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
     const userDoc = snapshot.docs[0];
     const user = userDoc.data();
-    const isMatch = await bcrypt.compare(password, user.password);
+    // Log password hashes being compared
+    console.log('HASHED PASSWORD IN DB:', user.password);
+    console.log('PASSWORD ENTERED:', password);
+    let isMatch = false;
+    try {
+      isMatch = await bcrypt.compare(password, user.password);
+      console.log('BCRYPT COMPARE RESULT:', isMatch);
+    } catch (bcryptErr) {
+      console.error('BCRYPT ERROR:', bcryptErr);
+    }
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
@@ -60,7 +104,8 @@ async function loginUser(req, res) {
     );
     res.json({ message: 'Login successful', token, user: { ...user, id: userDoc.id } });
   } catch (err) {
-    res.status(500).json({ message: 'Login failed', error: err.message });
+    console.error('LOGIN ERROR:', err);
+    res.status(500).json({ message: 'Login failed', error: err.message || err });
   }
 }
 

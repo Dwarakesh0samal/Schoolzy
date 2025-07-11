@@ -6,16 +6,69 @@
   <title>Schools - Schoolzy</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .nav-logo-img {
+      height: 42px;
+      width: auto;
+      display: block;
+      margin-left: 12px;
+      margin-right: 0;
+      padding: 0;
+      box-shadow: none;
+      background: none;
+      border: none;
+      object-fit: contain;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      height: 100%;
+      text-decoration: none;
+    }
+  </style>
 </head>
 <body>
   <nav class="navbar">
     <div class="nav-container">
-      <a href="index.html" class="nav-logo"><i class="fas fa-graduation-cap"></i> <span>Schoolzy</span></a>
+      <a href="index.html" class="nav-logo">
+        <img src="logo-white.png" alt="Schoolzy Logo" class="nav-logo-img" />
+      </a>
     </div>
   </nav>
-  <main class="main-centered">
-    <div class="container" style="margin-top: 60px;">
+  <main class="main-centered" style="background: #fff; min-height: 100vh;">
+    <section class="search-section">
+      <div class="container">
+        <div class="search-box">
+          <input type="text" id="school-search" placeholder="Search schools by name, location, or category..." aria-label="Search schools">
+          <input type="text" id="city-search" placeholder="City" aria-label="Search by city">
+          <select id="category-filter" aria-label="Filter by category">
+            <option value="">All Categories</option>
+            <option value="Elementary">Elementary</option>
+            <option value="Middle">Middle</option>
+            <option value="High">High</option>
+            <option value="Private">Private</option>
+            <option value="Public">Public</option>
+          </select>
+          <select id="rating-filter" aria-label="Filter by rating">
+            <option value="">All Ratings</option>
+            <option value="4">4+ Stars</option>
+            <option value="3">3+ Stars</option>
+            <option value="2">2+ Stars</option>
+          </select>
+          <button id="search-btn" class="btn btn-primary">
+            <i class="fas fa-search" aria-hidden="true"></i> Search
+          </button>
+        </div>
+      </div>
+    </section>
+    <div class="container" style="margin-top: 60px; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(80,80,120,0.08);">
       <h2>All Schools</h2>
+      <!--
+      <div id="school-search-bar" style="margin-bottom: 2rem; text-align:center;">
+        <input type="text" id="school-search-input" placeholder="Search schools by name..." style="padding:0.5rem; width:60%; max-width:300px;">
+        <button id="school-search-btn" class="btn btn-primary" style="margin-left:0.5rem;">Search</button>
+      </div>
+      -->
       <div id="schools-grid" class="schools-grid"></div>
       <a href="index.html" class="btn btn-outline" style="margin-top:1rem;">Back to Home</a>
     </div>
@@ -23,6 +76,10 @@
   <div id="school-modal" class="modal hidden">
     <div class="modal-content" id="school-modal-content">
       <!-- School details will be loaded here -->
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="add-review-btn">Add Review</button>
+        <a href="https://mothers.edu.in" target="_blank" rel="noopener" class="btn btn-outline">Visit School Website</a>
+      </div>
     </div>
   </div>
   <script>
@@ -35,28 +92,75 @@
         const res = await fetch('/api/schools');
         const data = await res.json();
         schools = data.schools || [];
-        grid.innerHTML = schools.map(school => `
-          <div class="school-card">
-            <div class="school-image">
-              <i class="fas fa-school"></i>
-            </div>
-            <div class="school-content">
-              <h3 class="school-name">${school.name}</h3>
-              <p class="school-location"><i class="fas fa-map-marker-alt"></i> ${school.location}</p>
-              <div class="school-rating">
-                <span class="stars">${'★'.repeat(Math.round(school.averageRating || 0))}${'☆'.repeat(5 - Math.round(school.averageRating || 0))}</span>
-                <span>${(school.averageRating || 0).toFixed(1)} (${school.reviewCount || 0} reviews)</span>
-              </div>
-              <span class="school-category">${school.category || 'School'}</span>
-              <button class="btn btn-primary view-details-btn" data-id="${school.id}" style="margin-top:1rem;">View Details</button>
-            </div>
-          </div>
-        `).join('');
+        renderSchools(schools);
       } catch (err) {
         grid.innerHTML = '<p class="error">Error loading schools. Please try again.</p>';
       }
     }
     loadSchools();
+
+    // Add working search bar for school name
+    const searchInput = document.getElementById('school-search');
+    const searchBtn = document.getElementById('search-btn');
+
+    function renderSchools(schoolsToRender) {
+      grid.innerHTML = schoolsToRender.map(school => `
+            <div class="school-card">
+          <div class="school-card-img">
+            <img src="${school.image || 'https://img.icons8.com/ios-filled/100/1e293b/school-building.png'}" alt="${school.name}" />
+              </div>
+          <div class="school-card-details">
+            <div class="school-card-header">
+                <h3 class="school-name">${school.name}</h3>
+              <span class="school-category">${school.category || 'School'}</span>
+            </div>
+            <div class="school-location">
+              <i class="fas fa-map-marker-alt"></i> ${school.location}
+            </div>
+                <div class="school-rating">
+              <span class="stars">${'\u2605'.repeat(Math.round(school.averageRating || 0))}${'\u2606'.repeat(5 - Math.round(school.averageRating || 0))}</span>
+                  <span>${(school.averageRating || 0).toFixed(1)} (${school.reviewCount || 0} reviews)</span>
+                </div>
+            <button class="btn btn-primary view-details-btn" data-id="${school.id}">View Details</button>
+              </div>
+            </div>
+          `).join('');
+        }
+
+    // Search by school name
+    function handleSchoolSearch() {
+      const nameQuery = searchInput.value.trim().toLowerCase();
+      const cityQuery = document.getElementById('city-search').value.trim().toLowerCase();
+      const category = document.getElementById('category-filter').value;
+      const rating = document.getElementById('rating-filter').value;
+
+      let filtered = schools;
+
+      // Name filter
+      if (nameQuery) {
+        filtered = filtered.filter(school => school.name.toLowerCase().includes(nameQuery));
+      }
+      // City filter
+      if (cityQuery) {
+        filtered = filtered.filter(school => (school.location || '').toLowerCase().includes(cityQuery));
+      }
+      // Category filter
+      if (category) {
+        filtered = filtered.filter(school => (school.category || '').toLowerCase() === category.toLowerCase());
+      }
+      // Rating filter
+      if (rating) {
+        filtered = filtered.filter(school => (school.averageRating || 0) >= parseFloat(rating));
+      }
+
+      renderSchools(filtered);
+    }
+
+    // Add event listeners for all filters
+    if (searchBtn) searchBtn.addEventListener('click', handleSchoolSearch);
+    if (searchInput) searchInput.addEventListener('keypress', e => { if (e.key === 'Enter') handleSchoolSearch(); });
+    document.getElementById('category-filter').addEventListener('change', handleSchoolSearch);
+    document.getElementById('rating-filter').addEventListener('change', handleSchoolSearch);
 
     // Modal logic
     const modal = document.getElementById('school-modal');
@@ -74,45 +178,174 @@
       }
     });
     function showSchoolModal(school) {
+      modalContent.innerHTML = `<div style="text-align:center;padding:2rem;">Loading...</div>`;
+
+      // School images
+      const images = Array.isArray(school.images) && school.images.length > 0 ? school.images : ["https://img.icons8.com/ios-filled/100/1e293b/school-building.png"];
+      let currentImg = 0;
+
+      // Reviews (use school.reviews or fetch from /api/reviews/:schoolId)
+      function renderReviews(reviews) {
+        if (!Array.isArray(reviews) || reviews.length === 0) {
+          return '<div style="text-align:center;color:#888;">No reviews yet.</div>';
+        }
+        return reviews.map(r => `
+          <div class="review-card">
+            <div class="review-avatar">${r.name ? r.name.charAt(0).toUpperCase() : '?'}</div>
+            <div class="review-content">
+              <div class="review-header">
+                <span class="reviewer-name">${r.name || 'Anonymous'}</span>
+                <span class="review-stars">${'★'.repeat(r.rating || 0)}${'☆'.repeat(5 - (r.rating || 0))}</span>
+                <span class="review-date">${r.date ? new Date(r.date).toLocaleDateString() : ''}</span>
+              </div>
+              <div class="review-text">${r.text || ''}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Add Review Form
+      function reviewFormHTML() {
+        return `
+          <div class="review-form">
+            <div style="font-weight:600;font-size:1.1rem;margin-bottom:0.7rem;">Leave a Review</div>
+            <form id="modal-add-review-form" style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start;">
+              <div class="feedback" id="review-rating">
+                <label class="angry">
+                  <input type="radio" value="1" name="feedback" required />
+                  <div class="feedback-face">
+                    <svg class="eye left"><use xlink:href="#eye"></use></svg>
+                    <svg class="eye right"><use xlink:href="#eye"></use></svg>
+                    <svg class="mouth"><use xlink:href="#mouth"></use></svg>
+                  </div>
+                </label>
+                <label class="sad">
+                  <input type="radio" value="2" name="feedback" />
+                  <div class="feedback-face">
+                    <svg class="eye left"><use xlink:href="#eye"></use></svg>
+                    <svg class="eye right"><use xlink:href="#eye"></use></svg>
+                    <svg class="mouth"><use xlink:href="#mouth"></use></svg>
+                  </div>
+                </label>
+                <label class="ok">
+                  <input type="radio" value="3" name="feedback" />
+                  <div class="feedback-face"></div>
+                </label>
+                <label class="good">
+                  <input type="radio" value="4" name="feedback" />
+                  <div class="feedback-face">
+                    <svg class="eye left"><use xlink:href="#eye"></use></svg>
+                    <svg class="eye right"><use xlink:href="#eye"></use></svg>
+                    <svg class="mouth"><use xlink:href="#mouth"></use></svg>
+                  </div>
+                </label>
+                <label class="happy">
+                  <input type="radio" value="5" name="feedback" />
+                  <div class="feedback-face">
+                    <svg class="eye left"><use xlink:href="#eye"></use></svg>
+                    <svg class="eye right"><use xlink:href="#eye"></use></svg>
+                  </div>
+                </label>
+              </div>
+              <textarea id="review-text" placeholder="Write your review..." required style="flex:2 1 200px;min-height:40px;max-height:100px;resize:vertical;"></textarea>
+              <button type="submit" style="background:linear-gradient(90deg,#667eea 0%,#764ba2 100%);color:#fff;border:none;border-radius:6px;padding:0.7rem 1.5rem;font-size:1rem;cursor:pointer;">Submit Review</button>
+            </form>
+          </div>
+        `;
+      }
+
+      // Render modal content
       modalContent.innerHTML = `
+        <div class="school-modal-content">
+          <div class="modal-top">
+            <div class="school-info">
+              <h2>${school.name}</h2>
+              <p><strong>Location:</strong> ${school.location || 'N/A'}</p>
+              <p><strong>Category:</strong> ${school.category || 'N/A'}</p>
+              <p><strong>Fee:</strong> ${school.fee || 'N/A'}</p>
+              <p><strong>Phone:</strong> ${school.phone || 'N/A'}</p>
+              <p><strong>Rating:</strong> <span style="color:#ffd700;">${'★'.repeat(Math.round(school.averageRating || 0))}${'☆'.repeat(5 - Math.round(school.averageRating || 0))}</span> ${(school.averageRating || 0).toFixed(1)} (${school.reviewCount || 0} reviews)</p>
+              ${school.description ? `<p style="margin-top:1rem;">${school.description}</p>` : ''}
+            </div>
+            <div class="school-image-container">
+              <button class="prev-btn" id="gallery-prev">&lt;</button>
+              <img class="school-image" id="modal-school-image" src="${images[0]}" alt="School Image" />
+              <button class="next-btn" id="gallery-next">&gt;</button>
+            </div>
+          </div>
+          <div class="school-reviews">
+            <div style="font-weight:600;font-size:1.2rem;margin-bottom:1rem;">What People Say</div>
+            <div class="school-modal-reviews" id="modal-reviews-list">
+              <div id="reviews-cards-list">${renderReviews(school.reviews)}</div>
+            </div>
+            ${reviewFormHTML()}
+          </div>
         <span class="close" id="close-modal">&times;</span>
-        <h2>${school.name}</h2>
-        <p><strong>Location:</strong> ${school.location}</p>
-        <p><strong>Category:</strong> ${school.category}</p>
-        <p><strong>Rating:</strong> ${school.averageRating || 0} (${school.reviewCount || 0} reviews)</p>
-        <p>${school.description}</p>
-        <button class="btn btn-primary" id="add-review-btn">Add Review</button>
+        </div>
       `;
       modal.classList.remove('hidden');
-      document.getElementById('close-modal').onclick = () => modal.classList.add('hidden');
-      document.getElementById('add-review-btn').onclick = function() {
-        showAddReviewForm(school);
-      };
-    }
-    function showAddReviewForm(school) {
-      modalContent.innerHTML = `
-        <span class="close" id="close-modal">&times;</span>
-        <h2>Add Review for ${school.name}</h2>
-        <form id="add-review-form">
-          <label>Rating:</label>
-          <select id="review-rating">
-            <option value="5">5</option>
-            <option value="4">4</option>
-            <option value="3">3</option>
-            <option value="2">2</option>
-            <option value="1">1</option>
-          </select>
-          <label>Review:</label>
-          <textarea id="review-text" required></textarea>
-          <button type="submit" class="btn btn-primary">Submit</button>
-        </form>
-      `;
-      document.getElementById('close-modal').onclick = () => modal.classList.add('hidden');
-      document.getElementById('add-review-form').onsubmit = function(e) {
-        e.preventDefault();
-        modalContent.innerHTML = `<h2>Thank you for your review!</h2>`;
-        setTimeout(() => modal.classList.add('hidden'), 1200);
-      };
+
+      // Image carousel logic
+      const imgEl = document.getElementById('modal-school-image');
+      const prevBtn = document.getElementById('gallery-prev');
+      const nextBtn = document.getElementById('gallery-next');
+      function updateImg() {
+        if (imgEl) imgEl.src = images[currentImg];
+      }
+      if (prevBtn) prevBtn.onclick = () => { currentImg = (currentImg - 1 + images.length) % images.length; updateImg(); };
+      if (nextBtn) nextBtn.onclick = () => { currentImg = (currentImg + 1) % images.length; updateImg(); };
+
+      // Close modal
+      const closeBtn = document.getElementById('close-modal');
+      if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
+
+      // Add review logic
+      const addReviewForm = document.getElementById('modal-add-review-form');
+      if (addReviewForm) {
+        addReviewForm.onsubmit = async function(e) {
+          e.preventDefault();
+          const name = document.getElementById('reviewer-name')?.value.trim() || 'Anonymous';
+          const rating = parseInt(document.querySelector('.feedback input[name="feedback"]:checked')?.value, 10);
+          const text = document.getElementById('review-text')?.value.trim();
+          if (!rating || !text) return;
+          // Show loading
+          const reviewsList = document.getElementById('reviews-cards-list');
+          if (reviewsList) reviewsList.innerHTML = '<div style="text-align:center;">Submitting...</div>';
+          try {
+            await fetch('/api/reviews/add', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ schoolId: school.id, name, rating, text })
+            });
+            // Refresh reviews
+            let reviews = [];
+            try {
+              const res = await fetch(`/api/reviews/${school.id}`);
+              const data = await res.json();
+              reviews = data.reviews || [];
+            } catch {
+              reviews = school.reviews || [];
+            }
+            if (reviewsList) reviewsList.innerHTML = renderReviews(reviews);
+            addReviewForm.reset();
+          } catch {
+            if (reviewsList) reviewsList.innerHTML = '<div style="color:red;">Error submitting review.</div>';
+          }
+        };
+      }
+
+      // Fetch and render latest reviews if available
+      (async function refreshReviews() {
+        const reviewsList = document.getElementById('reviews-cards-list');
+        if (!reviewsList) return;
+        try {
+          const res = await fetch(`/api/reviews/${school.id}`);
+          const data = await res.json();
+          reviewsList.innerHTML = renderReviews(data.reviews || []);
+        } catch {
+          reviewsList.innerHTML = renderReviews(school.reviews || []);
+        }
+      })();
     }
     // Close modal on outside click
     window.onclick = function(event) {
@@ -121,5 +354,13 @@
       }
     };
   </script>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <symbol viewBox="0 0 7 4" id="eye">
+      <path d="M1,1 C1.83333333,2.16666667 2.66666667,2.75 3.5,2.75 C4.33333333,2.75 5.16666667,2.16666667 6,1"></path>
+    </symbol>
+    <symbol viewBox="0 0 18 7" id="mouth">
+      <path d="M1,5.5 C3.66666667,2.5 6.33333333,1 9,1 C11.6666667,1 14.3333333,2.5 17,5.5"></path>
+    </symbol>
+  </svg>
 </body>
 </html> 

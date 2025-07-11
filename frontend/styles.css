@@ -9,19 +9,24 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: #333;
-    background-color: #f8f9fa;
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    background-color: #1e293b;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 2rem 1rem 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 /* Navigation */
 .navbar {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 1rem 0;
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    background-color: #1e293b;
+    padding: 0.5rem 0;
     position: fixed;
     top: 0;
     width: 100%;
@@ -30,8 +35,6 @@ body {
 }
 
 .nav-container {
-    max-width: 1200px;
-    margin: 0 auto;
     padding: 0 20px;
     display: flex;
     justify-content: space-between;
@@ -88,22 +91,23 @@ body {
 }
 
 /* Buttons */
-.btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
+.btn, button {
+    padding: 0.7rem 1.5rem;
     border-radius: 8px;
-    font-weight: 600;
+    border: none;
+    background: #667eea;
+    color: #fff;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(80,80,120,0.04);
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    background-color: #667eea;
     color: white;
+    border: none;
 }
 
 .btn-primary:hover {
@@ -112,14 +116,15 @@ body {
 }
 
 .btn-outline {
-    background: transparent;
-    color: white;
-    border: 2px solid white;
+    background: #fff;
+    color: #667eea;
+    border: 2px solid #667eea;
 }
 
 .btn-outline:hover {
-    background: white;
-    color: #667eea;
+    background: #f0f4f8;
+    color: #5a67d8;
+    border-color: #5a67d8;
 }
 
 .btn-large {
@@ -140,7 +145,8 @@ body {
 
 /* Hero Section */
 .hero {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    background-color: #1e293b;
     color: white;
     padding: 120px 0 80px;
     display: flex;
@@ -190,31 +196,73 @@ body {
 /* Search Section */
 .search-section {
     background: white;
-    padding: 3rem 0;
+    padding: 1.2rem 0 0.7rem 0;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
+/* Enhanced search box styles for schools.html */
 .search-box {
     display: flex;
-    gap: 1rem;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
+    gap: 0.7rem;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 6px rgba(80,80,120,0.05);
+    padding: 0.7rem 1rem;
+    margin: 0 auto 0.7rem auto;
+    max-width: 900px;
 }
-
 .search-box input,
 .search-box select {
-    padding: 0.75rem 1rem;
-    border: 2px solid #e1e5e9;
+    height: 44px;
+    padding: 0 1rem;
+    border: 1.5px solid #e2e8f0;
     border-radius: 8px;
-    font-size: 1rem;
-    transition: border-color 0.3s ease;
+    font-size: 1.08rem;
+    background: #f8fafc;
+    transition: border-color 0.2s;
+    box-shadow: none;
 }
-
 .search-box input:focus,
 .search-box select:focus {
-    outline: none;
     border-color: #667eea;
+    outline: none;
+    background: #fff;
+}
+.search-box button {
+    height: 44px;
+    padding: 0 1.5rem;
+    border-radius: 8px;
+    font-size: 1.08rem;
+    font-weight: 600;
+    background: #667eea;
+    color: #fff;
+    border: none;
+    box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+    transition: background 0.18s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.search-box button:hover {
+    background: #5a67d8;
+}
+@media (max-width: 700px) {
+    .search-box {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 1rem 0.5rem;
+        gap: 0.7rem;
+    }
+    .search-box input,
+    .search-box select,
+    .search-box button {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
 }
 
 #school-search {
@@ -241,39 +289,76 @@ body {
     margin-bottom: 2rem;
 }
 
+/* --- Modern Horizontal School Card Redesign --- */
 .school-card {
-    background: white;
-    border-radius: 12px;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(80,80,120,0.10);
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer;
+    margin: 1.5rem 0;
+    transition: box-shadow 0.2s, transform 0.2s;
+    min-height: 220px;
+    max-width: 900px;
+    width: 100%;
 }
 
 .school-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 32px rgba(80,80,120,0.18);
+    transform: translateY(-4px) scale(1.01);
 }
 
-.school-image {
-    height: 200px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.school-card-img {
+    flex: 0 0 220px;
+    background: #f3f6fa;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-size: 3rem;
+    min-width: 180px;
+    max-width: 240px;
+    height: 220px;
+    overflow: hidden;
 }
 
-.school-content {
-    padding: 1.5rem;
+.school-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0;
+}
+
+.school-card-details {
+    flex: 1 1 0;
+    padding: 2rem 2rem 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.school-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.7rem;
 }
 
 .school-name {
-    font-size: 1.3rem;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-    color: #333;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #22223b;
+    margin: 0;
+}
+
+.school-category {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 0.3rem 1rem;
+    border-radius: 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-left: 1rem;
 }
 
 .school-location {
@@ -282,47 +367,114 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    font-size: 1.1rem;
 }
 
 .school-rating {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    gap: 0.7rem;
+    margin-bottom: 1.2rem;
+    font-size: 1.1rem;
 }
 
 .stars {
     color: #ffd700;
+    font-size: 1.2rem;
 }
 
-.school-category {
-    background: #e3f2fd;
-    color: #1976d2;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 500;
+.view-details-btn {
+    align-self: flex-start;
+    margin-top: auto;
+    padding: 0.7rem 2rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+}
+
+@media (max-width: 700px) {
+    .school-card {
+        flex-direction: column;
+        min-height: unset;
+        max-width: 100%;
+    }
+    .school-card-img {
+        width: 100%;
+        height: 180px;
+        max-width: 100%;
+        min-width: 0;
+    }
+    .school-card-details {
+        padding: 1.2rem 1rem;
+    }
 }
 
 /* Map Section */
 .map-section {
-    padding: 4rem 0;
-    background: #f8f9fa;
+    min-height: calc(100vh - 64px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 0;
+    background: none;
 }
 
-.map-section h2 {
+.map-section .container {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+    padding: 0 1rem;
+}
+
+.map-title {
     text-align: center;
-    font-size: 2.5rem;
-    margin-bottom: 3rem;
-    color: #333;
+    font-size: 2rem;
+    margin: 2rem 0 1.2rem 0;
+    font-weight: 700;
 }
 
-.map-container {
-    height: 500px;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    margin-bottom: 2rem;
+.location-search-box {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    max-width: 600px;
+}
+
+#city-search {
+    flex: 1 1 250px;
+    min-width: 0;
+    padding: 0.75rem 1rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+}
+
+#city-search-btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+}
+
+.map-container, #map-container {
+    width: 100%;
+    max-width: 1200px;
+    height: 70vh;
+    min-height: 320px;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(80,80,120,0.10);
+    background: #f8f9fa;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
 }
 
 .map-controls {
@@ -340,44 +492,30 @@ body {
     width: 150px;
 }
 
-.location-search-box {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    margin-bottom: 1.5rem;
-}
-
-#city-search {
-    padding: 0.75rem 1rem;
-    border: 2px solid #e1e5e9;
-    border-radius: 8px;
-    font-size: 1rem;
-    width: 300px;
-}
-
 /* Modals */
 .modal {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
+    width: 100vw;
+    height: 100vh;
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.5);
     z-index: 2000;
 }
 
 .modal-content {
     background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    max-width: 600px;
-    width: 90%;
-    max-height: 80vh;
+    padding: 1rem;
+    border-radius: 16px;
+    max-width: 1500px;
+    width: 95%;
+    max-height:100vh;
     overflow-y: auto;
     position: relative;
+    margin: 2rem auto;
 }
 
 .close {
@@ -439,7 +577,9 @@ body {
 /* About Section */
 .about-section {
     padding: 4rem 0;
-    background: white;
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    background-color: #1e293b;
+    color: #333;
 }
 
 .about-section h2 {
@@ -470,6 +610,12 @@ body {
 .feature {
     text-align: center;
     padding: 2rem;
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    background-color: #1e293b;
+    color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(80,80,120,0.08);
+    margin-bottom: 1rem;
 }
 
 .feature i {
@@ -490,7 +636,8 @@ body {
 
 /* Footer */
 .footer {
-    background: #333;
+    /* background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); */
+    background-color: #1e293b;
     color: white;
     padding: 3rem 0 1rem;
 }
@@ -799,126 +946,6 @@ body {
     .footer .footer-section.contact p {
         color: #fff;
     }
-    .footer .footer-section.contact {
-        font-size: 1.05em;
-    }
-    .footer .footer-section.contact .footer-title {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact strong {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact a {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact p {
-        color: #fff;
-    }
-    .footer .footer-section.contact {
-        font-size: 1.05em;
-    }
-    .footer .footer-section.contact .footer-title {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact strong {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact a {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact p {
-        color: #fff;
-    }
-    .footer .footer-section.contact {
-        font-size: 1.05em;
-    }
-    .footer .footer-section.contact .footer-title {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact strong {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact a {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact p {
-        color: #fff;
-    }
-    .footer .footer-section.contact {
-        font-size: 1.05em;
-    }
-    .footer .footer-section.contact .footer-title {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact strong {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact a {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact p {
-        color: #fff;
-    }
-    .footer .footer-section.contact {
-        font-size: 1.05em;
-    }
-    .footer .footer-section.contact .footer-title {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact strong {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact a {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact p {
-        color: #fff;
-    }
-    .footer .footer-section.contact {
-        font-size: 1.05em;
-    }
-    .footer .footer-section.contact .footer-title {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact strong {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact a {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact p {
-        color: #fff;
-    }
-    .footer .footer-section.contact {
-        font-size: 1.05em;
-    }
-    .footer .footer-section.contact .footer-title {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact strong {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact a {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact p {
-        color: #fff;
-    }
-    .footer .footer-section.contact {
-        font-size: 1.05em;
-    }
-    .footer .footer-section.contact .footer-title {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact strong {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact a {
-        color: #ffe066;
-    }
-    .footer .footer-section.contact p {
-        color: #fff;
-    }
 }
 
 /* Animations */
@@ -1019,7 +1046,8 @@ body.dark-mode {
     color: #e0e0e0;
 }
 body.dark-mode .navbar {
-    background: linear-gradient(135deg, #232526 0%, #414345 100%);
+    /* background: linear-gradient(135deg, #232526 0%, #414345 100%); */
+    background-color: #fff;
 }
 body.dark-mode .nav-link,
 body.dark-mode .nav-logo,
@@ -1044,7 +1072,8 @@ body.dark-mode .modal-content {
 body.dark-mode .schools-section,
 body.dark-mode .about-section,
 body.dark-mode .search-section {
-    background: #232526;
+    /* background: linear-gradient(135deg, #232526 0%, #414345 100%); */
+    background-color: #fff;
     color: #e0e0e0;
 }
 body.dark-mode .school-card {
@@ -1053,10 +1082,11 @@ body.dark-mode .school-card {
     box-shadow: 0 4px 20px rgba(0,0,0,0.4);
 }
 body.dark-mode .school-image {
-    background: linear-gradient(135deg, #232526 0%, #414345 100%);
+    /* background: linear-gradient(135deg, #232526 0%, #414345 100%); */
+    background-color: #fff;
 }
 body.dark-mode .btn-primary {
-    background: linear-gradient(135deg, #414345 0%, #232526 100%);
+    /* background: linear-gradient(135deg, #414345 0%, #232526 100%); */
     color: #fff;
 }
 body.dark-mode .btn-outline {
@@ -1068,7 +1098,8 @@ body.dark-mode .btn-outline:hover {
     color: #232526;
 }
 body.dark-mode .map-section {
-    background: #181a1b;
+    /* background: linear-gradient(90deg, #232526 0%, #414345 100%); */
+    background-color: #fff;
 }
 body.dark-mode .footer {
     background: #232526;
@@ -1085,4 +1116,1100 @@ body.dark-mode .loading {
 }
 body.dark-mode .modal {
     background: rgba(24,26,27,0.85);
+}
+
+/* Responsive adjustments */
+@media (max-width: 700px) {
+    .map-container, #map-container {
+        height: 250px;
+        max-width: 98vw;
+    }
+}
+
+/* Leaflet controls and popups */
+.leaflet-control {
+    font-size: 1rem;
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    font-family: inherit;
+}
+
+.leaflet-popup-content {
+    font-size: 1.1rem;
+    color: #333;
+}
+
+/* Optional: Style the user marker if you add a class in JS */
+.leaflet-marker-icon.user-location {
+    filter: hue-rotate(180deg) brightness(1.2);
+}
+
+/* Section spacing for visual clarity */
+.section, .main, .about-section, .map-section {
+    padding: 2rem 0;
+}
+
+/* Card backgrounds */
+.school-card, .feature, .modal-content {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(80,80,120,0.08);
+}
+
+@media (max-width: 900px) {
+    .container {
+        padding: 1.2rem 0.5rem 1rem 0.5rem;
+    }
+    .map-container, #map-container {
+        max-width: 98vw;
+        height: 55vh;
+    }
+    .location-search-box {
+        flex-direction: column;
+        gap: 0.7rem;
+        max-width: 100vw;
+    }
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 0.5rem 0.2rem 0.5rem 0.2rem;
+    }
+    .map-section .container {
+        padding: 0 0.2rem;
+    }
+    .map-title {
+        font-size: 1.3rem;
+        margin: 1.2rem 0 0.7rem 0;
+    }
+    .map-container, #map-container {
+        height: 40vh;
+        min-height: 160px;
+        border-radius: 10px;
+    }
+}
+
+/* =====================
+   OLD SCHOOL MODAL CSS (commented out for reference)
+========================
+.school-modal {
+    /* background: #fff; */
+    /* border-radius: 20px; */
+    /* box-shadow: 0 8px 32px rgba(0,0,0,0.18); */
+    /* padding: 2.5rem 2.5rem 2rem 2.5rem; */
+    /* max-width: 600px; */
+    /* margin: 0 auto; */
+    /* display: flex; */
+    /* flex-direction: column; */
+    /* gap: 2rem; */
+    /* font-family: 'Segoe UI', Arial, sans-serif; */
+    /* color: #22223b; */
+    /* position: relative; */
+    /* animation: modalFadeIn 0.35s cubic-bezier(.4,0,.2,1); */
+}
+
+/* @keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.98);}
+    to   { opacity: 1; transform: translateY(0) scale(1);}
+} */
+
+/* .modal-close {
+    position: absolute;
+    top: 1.2rem;
+    right: 1.5rem;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #888;
+    cursor: pointer;
+    transition: color 0.2s;
+    z-index: 2;
+}
+.modal-close:hover {
+    color: #22223b;
+} */
+
+/* .modal-title {
+    font-size: 2.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    letter-spacing: -0.5px;
+} */
+
+/* .modal-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: #f7f8fc;
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    font-size: 1.08rem;
+} */
+
+/* .modal-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+} */
+
+/* .modal-label {
+    font-weight: 600;
+    color: #444;
+    min-width: 110px;
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+} */
+
+/* .modal-info i {
+    color: #667eea;
+    font-size: 1.1em;
+} */
+
+/* .modal-rating .star {
+    color: #f6c700;
+    font-size: 1.1em;
+    margin-right: 0.2em;
+}
+.reviews {
+    color: #888;
+    font-size: 0.98em;
+    margin-left: 0.3em;
+} */
+
+/* .modal-description {
+    font-size: 1.13rem;
+    color: #333;
+    line-height: 1.7;
+    margin: 0.7rem 0 0.7rem 0;
+    text-align: center;
+} */
+
+/* .modal-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 1.2rem;
+    width: 100%;
+} */
+
+/* .modal-actions .btn {
+    min-width: 170px;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.7rem 1.3rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    box-shadow: 0 2px 8px rgba(80,80,120,0.07);
+} */
+
+/* =====================
+   NEW SCHOOL MODAL CSS (user provided)
+======================== */
+.school-modal {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    padding: 2.5rem 2.5rem 2rem 2.5rem;
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #22223b;
+    position: relative;
+    animation: modalFadeIn 0.35s cubic-bezier(.4,0,.2,1);
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.98);}
+    to   { opacity: 1; transform: translateY(0) scale(1);}
+}
+
+.modal-close {
+    position: absolute;
+    top: 1.2rem;
+    right: 1.5rem;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #888;
+    cursor: pointer;
+    transition: color 0.2s;
+    z-index: 2;
+}
+.modal-close:hover {
+    color: #22223b;
+}
+
+.modal-title {
+    font-size: 2.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    letter-spacing: -0.5px;
+}
+
+.modal-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: #f7f8fc;
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    font-size: 1.08rem;
+}
+
+.modal-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.modal-label {
+    font-weight: 600;
+    color: #444;
+    min-width: 110px;
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+}
+
+.modal-info i {
+    color: #667eea;
+    font-size: 1.1em;
+}
+
+.modal-rating .star {
+    color: #f6c700;
+    font-size: 1.1em;
+    margin-right: 0.2em;
+}
+.reviews {
+    color: #888;
+    font-size: 0.98em;
+    margin-left: 0.3em;
+}
+
+.modal-description {
+    font-size: 1.13rem;
+    color: #333;
+    line-height: 1.7;
+    margin: 0.7rem 0 0.7rem 0;
+    text-align: center;
+}
+
+/* Modal actions: Add Review left, Visit School Website right */
+.modal-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.2rem;
+    width: 100%;
+}
+
+.modal-actions .btn-right {
+    margin-left: auto;
+}
+
+@media (max-width: 700px) {
+    .modal-actions {
+        flex-direction: column;
+        gap: 0.7rem;
+        align-items: stretch;
+    }
+    .modal-actions .btn, .modal-actions .btn-right {
+        width: 100%;
+        min-width: 0;
+        justify-content: center;
+        margin-left: 0;
+    }
+}
+
+/* Auth Pages (Login/Register) */
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.auth-form {
+    background: #fff;
+    padding: 2.5rem 2rem 2rem 2rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(80,80,120,0.10);
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    min-width: 320px;
+    max-width: 350px;
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+.auth-form h1 {
+    color: #333;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.auth-form input {
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 1rem;
+    background: #f8fafc;
+    transition: border 0.2s;
+}
+
+.auth-form input:focus {
+    border: 1.5px solid #667eea;
+    outline: none;
+    background: #fff;
+}
+
+.auth-form button, .auth-form .btn {
+    margin-top: 0.5rem;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    font-weight: 600;
+    font-size: 1rem;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+}
+
+.auth-form button:hover, .auth-form .btn:hover {
+    background: linear-gradient(90deg, #5a67d8 0%, #6b47dc 100%);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.18);
+}
+
+.auth-link, .auth-form a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.auth-link:hover, .auth-form a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+.auth-extra {
+    text-align: center;
+    color: #64748b;
+    font-size: 0.97rem;
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 500px) {
+    .auth-form {
+        min-width: 90vw;
+        padding: 1.5rem 0.7rem 1.2rem 0.7rem;
+    }
+}
+
+/* Profile menu dropdown styles */
+.profile-menu-dropdown {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 12px;
+  min-width: 180px;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Profile menu button styles */
+.profile-menu-btn {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  margin: 0;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(118, 75, 162, 0.08);
+  width: 100%;
+  text-align: left;
+}
+
+.profile-menu-btn:hover, .profile-menu-btn:focus {
+  background: linear-gradient(90deg, #764ba2 0%, #667eea 100%);
+  outline: none;
+}
+
+.school-modal-content {
+  max-width: 1400px;
+  width: 99vw;
+  background: #fff;
+  padding: 1rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  box-sizing: border-box;
+}
+
+#school-modal-content {
+  border-radius: 18px;
+  box-shadow: 0 8px 40px rgba(80,80,120,0.18);
+  background: #fff;
+}
+
+.modal-top {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr;
+  gap: 2.5rem;
+  align-items: stretch;
+  min-height: 340px;
+}
+
+.school-info {
+  padding: 1.5rem 1.5rem 1.5rem 0;
+  font-size: 1.1rem;
+}
+
+.school-info h2 {
+  font-size: 2.1rem;
+  font-weight: 700;
+  margin-bottom: 1.2rem;
+}
+
+.school-info p {
+  margin: 0.3rem 0;
+  line-height: 1.5;
+}
+
+.school-info strong {
+  font-weight: 600;
+  color: #22223b;
+}
+
+.school-images {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.school-images img {
+  width: 420px;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 14px;
+  background: #f3f6fa;
+  box-shadow: 0 2px 12px rgba(80,80,120,0.08);
+  margin: 0 0.5rem;
+}
+
+.gallery-nav {
+  background: #f3f6fa;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  font-size: 2rem;
+  color: #667eea;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  box-shadow: 0 2px 8px rgba(80,80,120,0.08);
+}
+.gallery-nav:hover {
+  background: #667eea;
+  color: #fff;
+}
+
+.school-reviews {
+  margin-top: 2.5rem;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 2rem;
+}
+
+.school-reviews > div:first-child {
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin-bottom: 1.2rem;
+}
+
+.school-modal-reviews {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.review-card {
+  background: #f9f9ff;
+  border-radius: 10px;
+  padding: 1.1rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(80,80,120,0.08);
+  display: flex;
+  gap: 1.2rem;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.review-avatar {
+  width: 44px;
+  height: 44px;
+  background: #667eea;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(80,80,120,0.10);
+}
+
+.review-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.2rem;
+  flex-wrap: wrap;
+}
+
+.reviewer-name {
+  font-weight: 600;
+  color: #22223b;
+  font-size: 1.05rem;
+}
+
+.review-stars {
+  color: #ffd700;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+.review-date {
+  color: #888;
+  font-size: 0.97rem;
+}
+
+.review-text {
+  margin-top: 0.2rem;
+  color: #333;
+  font-size: 1.08rem;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.review-form {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+}
+
+#modal-add-review-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-top: 0.5rem;
+}
+
+#modal-add-review-form input,
+#modal-add-review-form select,
+#modal-add-review-form textarea {
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  background: #f9f9ff;
+  transition: border 0.2s;
+}
+
+#modal-add-review-form input:focus,
+#modal-add-review-form select:focus,
+#modal-add-review-form textarea:focus {
+  border: 1.5px solid #667eea;
+  outline: none;
+}
+
+#modal-add-review-form textarea {
+  flex: 2 1 200px;
+  min-height: 44px;
+  max-height: 120px;
+  resize: vertical;
+}
+
+#modal-add-review-form button {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem 2rem;
+  font-size: 1.08rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(80,80,120,0.08);
+}
+
+#modal-add-review-form button:hover {
+  background: linear-gradient(90deg, #764ba2 0%, #667eea 100%);
+}
+
+@media (max-width: 900px) {
+  .review-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem 0.7rem;
+  }
+  #modal-add-review-form {
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+}
+
+/* Isolated rating bar styles for review form only */
+.review-form .feedback {
+  --normal: #414052;
+  --normal-shadow: #313140;
+  --normal-shadow-top: #4c4b60;
+  --normal-mouth: #2e2e3d;
+  --normal-eye: #282734;
+  --active: #f8da69;
+  --active-shadow: #f4b555;
+  --active-shadow-top: #fff6d3;
+  --active-mouth: #f05136;
+  --active-eye: #313036;
+  --active-tear: #76b5e7;
+  --active-shadow-angry: #e94f1d;
+  --hover: #454456;
+  --hover-shadow-top: #59586b;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+}
+.review-form .feedback label {
+  position: relative;
+  transition: transform 0.3s;
+  cursor: pointer;
+}
+.review-form .feedback label:not(:last-child) {
+  margin-right: 20px;
+}
+.review-form .feedback label input {
+  appearance: none;
+  outline: none;
+  border: none;
+  display: block;
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  left: 0;
+  top: 0;
+  margin: 0;
+  padding: 0;
+  border-radius: 50% !important;
+  background: var(--sb, var(--normal));
+  box-shadow: inset 3px -3px 4px var(--sh, var(--normal-shadow)),
+    inset -1px 1px 2px var(--sht, var(--normal-shadow-top));
+  transition: background 0.4s, box-shadow 0.4s, transform 0.3s;
+  -webkit-tap-highlight-color: transparent;
+}
+.review-form .feedback .feedback-face {
+  width: 40px;
+  height: 40px;
+  border-radius: 50% !important;
+  overflow: hidden;
+  border: 2px solid #eee;
+  box-shadow: none;
+  position: relative;
+  transform: perspective(240px) translateZ(4px);
+}
+.review-form .feedback label div svg,
+.review-form .feedback label div:before,
+.review-form .feedback label div:after {
+  display: block;
+  position: absolute;
+  left: var(--l, 9px);
+  top: var(--t, 13px);
+  width: var(--w, 8px);
+  height: var(--h, 1px);
+  transform: rotate(var(--r, 0deg)) scale(var(--sc, 1)) translateZ(0);
+}
+.review-form .feedback label div svg {
+  fill: none;
+  stroke: var(--s);
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.4s;
+}
+.review-form .feedback label div svg.eye {
+  --s: var(--e, var(--normal-eye));
+  --t: 17px;
+  --w: 7px;
+  --h: 4px;
+}
+.review-form .feedback label div svg.eye.right {
+  --l: 23px;
+}
+.review-form .feedback label div svg.mouth {
+  --s: var(--m, var(--normal-mouth));
+  --l: 11px;
+  --t: 23px;
+  --w: 18px;
+  --h: 7px;
+}
+.review-form .feedback label div:before,
+.review-form .feedback label div:after {
+  content: "";
+  z-index: var(--zi, 1);
+  border-radius: var(--br, 1px);
+  background: var(--b, var(--e, var(--normal-eye)));
+  transition: background 0.4s;
+}
+.review-form .feedback label.angry {
+  --step-1-rx: -24deg;
+  --step-1-ry: 20deg;
+  --step-2-rx: -24deg;
+  --step-2-ry: -20deg;
+}
+.review-form .feedback label.angry div:before {
+  --r: 20deg;
+}
+.review-form .feedback label.angry div:after {
+  --l: 23px;
+  --r: -20deg;
+}
+.review-form .feedback label.angry div svg.eye {
+  stroke-dasharray: 4.55;
+  stroke-dashoffset: 8.15;
+}
+.review-form .feedback label.angry input:checked {
+  animation: angry 1s linear;
+}
+.review-form .feedback label.angry input:checked + div:before {
+  --middle-y: -2px;
+  --middle-r: 22deg;
+  animation: toggle 0.8s linear forwards;
+}
+.review-form .feedback label.angry input:checked + div:after {
+  --middle-y: 1px;
+  --middle-r: -18deg;
+  animation: toggle 0.8s linear forwards;
+}
+.review-form .feedback label.sad {
+  --step-1-rx: 20deg;
+  --step-1-ry: -12deg;
+  --step-2-rx: -18deg;
+  --step-2-ry: 14deg;
+}
+.review-form .feedback label.sad div:before,
+.review-form .feedback label.sad div:after {
+  --b: var(--active-tear);
+  --sc: 0;
+  --w: 5px;
+  --h: 5px;
+  --t: 15px;
+  --br: 50%;
+}
+.review-form .feedback label.sad div:after {
+  --l: 25px;
+}
+.review-form .feedback label.sad div svg.eye {
+  --t: 16px;
+}
+.review-form .feedback label.sad div svg.mouth {
+  --t: 24px;
+  stroke-dasharray: 9.5;
+  stroke-dashoffset: 33.25;
+}
+.review-form .feedback label.sad input:checked + div:before,
+.review-form .feedback label.sad input:checked + div:after {
+  animation: tear 0.6s linear forwards;
+}
+.review-form .feedback label.ok {
+  --step-1-rx: 4deg;
+  --step-1-ry: -22deg;
+  --step-1-rz: 6deg;
+  --step-2-rx: 4deg;
+  --step-2-ry: 22deg;
+  --step-2-rz: -6deg;
+}
+.review-form .feedback label.ok div:before {
+  --l: 12px;
+  --t: 17px;
+  --h: 4px;
+  --w: 4px;
+  --br: 50%;
+  box-shadow: 12px 0 0 var(--e, var(--normal-eye));
+}
+.review-form .feedback label.ok div:after {
+  --l: 13px;
+  --t: 26px;
+  --w: 14px;
+  --h: 2px;
+  --br: 1px;
+  --b: var(--m, var(--normal-mouth));
+}
+.review-form .feedback label.ok input:checked + div:before {
+  --middle-s-y: 0.35;
+  animation: toggle 0.2s linear forwards;
+}
+.review-form .feedback label.ok input:checked + div:after {
+  --middle-s-x: 0.5;
+  animation: toggle 0.7s linear forwards;
+}
+.review-form .feedback label.good {
+  --step-1-rx: -14deg;
+  --step-1-rz: 10deg;
+  --step-2-rx: 10deg;
+  --step-2-rz: -8deg;
+}
+.review-form .feedback label.good div:before {
+  --b: var(--m, var(--normal-mouth));
+  --w: 5px;
+  --h: 5px;
+  --br: 50%;
+  --t: 22px;
+  --zi: 0;
+  opacity: 0.5;
+  box-shadow: 16px 0 0 var(--b);
+  filter: blur(2px);
+}
+.review-form .feedback label.good div:after {
+  --sc: 0;
+}
+.review-form .feedback label.good div svg.eye {
+  --t: 15px;
+  --sc: -1;
+  stroke-dasharray: 4.55;
+  stroke-dashoffset: 8.15;
+}
+.review-form .feedback label.good div svg.mouth {
+  --t: 22px;
+  --sc: -1;
+  stroke-dasharray: 13.3;
+  stroke-dashoffset: 23.75;
+}
+.review-form .feedback label.good input:checked + div svg.mouth {
+  --middle-y: 1px;
+  --middle-s: -1;
+  animation: toggle 0.8s linear forwards;
+}
+.review-form .feedback label.happy div {
+  --step-1-rx: 18deg;
+  --step-1-ry: 24deg;
+  --step-2-rx: 18deg;
+  --step-2-ry: -24deg;
+}
+.review-form .feedback label.happy div:before {
+  --sc: 0;
+}
+.review-form .feedback label.happy div:after {
+  --b: var(--m, var(--normal-mouth));
+  --l: 11px;
+  --t: 23px;
+  --w: 18px;
+  --h: 8px;
+  --br: 0 0 8px 8px;
+}
+.review-form .feedback label.happy div svg.eye {
+  --t: 14px;
+  --sc: -1;
+}
+.review-form .feedback label.happy input:checked + div:after {
+  --middle-s-x: 0.95;
+  --middle-s-y: 0.75;
+  animation: toggle 0.8s linear forwards;
+}
+.review-form .feedback label input:checked {
+  --sb: var(--active);
+  --sh: var(--active-shadow);
+  --sht: var(--active-shadow-top);
+}
+.review-form .feedback label input:checked + div {
+  --m: var(--active-mouth);
+  --e: var(--active-eye);
+  animation: shake 0.8s linear forwards;
+}
+.review-form .feedback label input:not(:checked):hover {
+  --sb: var(--hover);
+  --sht: var(--hover-shadow-top);
+}
+.review-form .feedback label input:not(:checked):active {
+  transform: scale(0.925);
+}
+.review-form .feedback label input:not(:checked):active + div {
+  transform: scale(0.925);
+}
+.review-form .feedback label:hover {
+  transform: scale(1.08);
+}
+@keyframes shake {
+  30% {
+    transform: perspective(240px) rotateX(var(--step-1-rx, 0deg))
+      rotateY(var(--step-1-ry, 0deg)) rotateZ(var(--step-1-rz, 0deg))
+      translateZ(10px);
+  }
+  60% {
+    transform: perspective(240px) rotateX(var(--step-2-rx, 0deg))
+      rotateY(var(--step-2-ry, 0deg)) rotateZ(var(--step-2-rz, 0deg))
+      translateZ(10px);
+  }
+  100% {
+    transform: perspective(240px) translateZ(4px);
+  }
+}
+@keyframes tear {
+  0% {
+    opacity: 0;
+    transform: translateY(-2px) scale(0) translateZ(0);
+  }
+  50% {
+    transform: translateY(12px) scale(0.6, 1.2) translateZ(0);
+  }
+  20%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(24px) translateX(4px) rotateZ(-30deg) scale(0.7, 1.1)
+      translateZ(0);
+  }
+}
+@keyframes toggle {
+  50% {
+    transform: translateY(var(--middle-y, 0))
+      scale(
+        var(--middle-s-x, var(--middle-s, 1)),
+        var(--middle-s-y, var(--middle-s, 1))
+      )
+      rotate(var(--middle-r, 0deg));
+  }
+}
+@keyframes angry {
+  40% {
+    background: var(--active);
+  }
+  45% {
+    box-shadow: inset 3px -3px 4px var(--active-shadow),
+      inset 0 8px 10px var(--active-shadow-angry);
+  }
+}
+
+/* Modal School Image Gallery Styles */
+.school-image-container {
+  position: relative;
+  width: 320px;
+  height: 220px;
+  margin: 0 auto 1.5rem auto;
+  background: #f8f9fb;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px 0 rgba(60,60,90,0.10), 0 1.5px 6px 0 rgba(60,60,90,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.school-image-container .school-image {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: none;
+  background: transparent;
+  display: block;
+  margin: 0 auto;
+}
+.school-image-container .prev-btn,
+.school-image-container .next-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: transparent;
+  color: #667eea;
+  border: 2px solid #667eea;
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(80,80,120,0.10);
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.2s, color 0.2s, border 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.school-image-container .prev-btn {
+  left: 14px;
+}
+.school-image-container .next-btn {
+  right: 14px;
+}
+.school-image-container .prev-btn:hover,
+.school-image-container .next-btn:hover {
+  background: #667eea;
+  color: #fff;
+  border: 2px solid #667eea;
+  box-shadow: 0 4px 16px rgba(102,126,234,0.18);
+  transform: translateY(-50%) scale(1.08);
+}
+@media (max-width: 600px) {
+  .school-image-container {
+    width: 98vw;
+    max-width: 98vw;
+    height: 180px;
+    border-radius: 12px;
+  }
+  .school-image-container .school-image {
+    border-radius: 8px;
+  }
+  .school-image-container .prev-btn,
+  .school-image-container .next-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1.2rem;
+  }
+  .school-image-container .prev-btn {
+    left: 6px;
+  }
+  .school-image-container .next-btn {
+    right: 6px;
+  }
 } 

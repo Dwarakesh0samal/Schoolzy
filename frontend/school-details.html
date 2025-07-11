@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>School Details - Schoolzy</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo"><i class="fas fa-graduation-cap"></i> <span>Schoolzy</span></a>
+    </div>
+  </nav>
+  <main class="main-centered">
+    <div class="container" style="margin-top: 60px;">
+      <div id="school-details"></div>
+      <h3>Reviews</h3>
+      <div id="reviews-list"></div>
+      <h3>Add a Review</h3>
+      <!--
+      <form id="add-review-form">
+        <label>Rating:</label>
+        <select id="review-rating">
+          <option value="5">5</option>
+          <option value="4">4</option>
+          <option value="3">3</option>
+          <option value="2">2</option>
+          <option value="1">1</option>
+        </select>
+        <label>Review:</label>
+        <textarea id="review-text" required></textarea>
+        <button type="submit" class="btn btn-primary">Submit Review</button>
+      </form>
+      -->
+      <form id="add-review-form" style="display: flex; flex-direction: column; gap: 1rem; background: #f9f9ff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(80,80,120,0.08);">
+        <label style="font-weight: 500;">Rating:</label>
+        <div id="star-rating" style="font-size: 2rem; color: #f5c518; cursor: pointer;">
+          <span data-value="1">&#9733;</span>
+          <span data-value="2">&#9733;</span>
+          <span data-value="3">&#9733;</span>
+          <span data-value="4">&#9733;</span>
+          <span data-value="5">&#9733;</span>
+        </div>
+        <input type="hidden" id="review-rating" value="5">
+        <label for="review-text" style="font-weight: 500;">Review:</label>
+        <textarea id="review-text" placeholder="Write your review..." rows="3" maxlength="300" style="padding: 0.7rem; border-radius: 8px; border: 1px solid #ddd; resize: vertical;"></textarea>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span id="char-count" style="font-size: 0.9rem; color: #888;">0/300</span>
+          <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.5rem; border-radius: 8px;">Submit</button>
+        </div>
+      </form>
+      <a href="schools.html" class="btn btn-outline" style="margin-top:1rem;">Back to Schools</a>
+    </div>
+  </main>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const params = new URLSearchParams(window.location.search);
+      const schoolId = params.get('id');
+      const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL)
+        ? import.meta.env.VITE_API_URL + '/api'
+        : (window.SCHOOLZY_CONFIG ? window.SCHOOLZY_CONFIG.API_BASE_URL : '/api');
+      async function loadSchool() {
+        try {
+          if (!schoolId) {
+            document.getElementById('school-details').innerHTML = '<p style="color:red;">No school ID provided.</p>';
+            return;
+          }
+          const res = await fetch(`${API_BASE}/schools/${schoolId}`);
+          if (!res.ok) throw new Error('School not found');
+          const school = await res.json();
+          if (!school || !school.name) {
+            document.getElementById('school-details').innerHTML = '<p style="color:red;">School not found.</p>';
+            return;
+          }
+          document.getElementById('school-details').innerHTML = `
+            <h2>${school.name}</h2>
+            <p><strong>Location:</strong> ${school.location}</p>
+            <p><strong>Category:</strong> ${school.category}</p>
+            <p><strong>Rating:</strong> ${school.averageRating || 0} (${school.reviewCount || 0} reviews)</p>
+            <p>${school.description}</p>
+            ${school.phone ? `<p><strong>Phone:</strong> ${school.phone}</p>` : ''}
+            ${school.website ? `<p><strong>Website:</strong> <a href="${school.website}" target="_blank">${school.website}</a></p>` : ''}
+          `;
+        } catch (err) {
+          document.getElementById('school-details').innerHTML = `<p style="color:red;">Error loading school details: ${err.message}</p>`;
+          console.error('[DEBUG] Error loading school details:', err);
+        }
+      }
+      async function loadReviews() {
+        try {
+          const res = await fetch(`${API_BASE}/reviews/${schoolId}`);
+          const reviews = await res.json();
+          document.getElementById('reviews-list').innerHTML = reviews.length ? reviews.map(r => `
+            <div class="review-item">
+              <div class="review-header">
+                ${r.user_profile_picture ? `<img src="${r.user_profile_picture}" class="review-avatar">` : ''}
+                <b>${r.user_name || 'Anonymous'}</b> <span class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span>
+              </div>
+              <div>${r.review_text}</div>
+            </div>
+          `).join('') : '<p>No reviews yet.</p>';
+        } catch (err) {
+          document.getElementById('reviews-list').innerHTML = `<p style="color:red;">Error loading reviews.</p>`;
+          console.error('[DEBUG] Error loading reviews:', err);
+        }
+      }
+      // Star rating logic
+      const starRating = document.getElementById('star-rating');
+      const ratingInput = document.getElementById('review-rating');
+      let currentRating = 5;
+      starRating.querySelectorAll('span').forEach(star => {
+        star.addEventListener('mouseenter', function() {
+          highlightStars(this.dataset.value);
+        });
+        star.addEventListener('mouseleave', function() {
+          highlightStars(currentRating);
+        });
+        star.addEventListener('click', function() {
+          currentRating = this.dataset.value;
+          ratingInput.value = currentRating;
+          highlightStars(currentRating);
+        });
+      });
+      function highlightStars(rating) {
+        starRating.querySelectorAll('span').forEach(star => {
+          star.style.color = star.dataset.value <= rating ? '#f5c518' : '#ccc';
+          star.style.transform = star.dataset.value <= rating ? 'scale(1.15)' : 'scale(1)';
+        });
+      }
+      highlightStars(currentRating);
+      // Character counter
+      const reviewText = document.getElementById('review-text');
+      const charCount = document.getElementById('char-count');
+      reviewText.addEventListener('input', function() {
+        charCount.textContent = `${reviewText.value.length}/300`;
+      });
+      // Submit handler
+      document.getElementById('add-review-form').onsubmit = async function(e) {
+        e.preventDefault();
+        // You can add user info logic here if needed
+        const rating = Number(document.getElementById('review-rating').value);
+        const review_text = document.getElementById('review-text').value;
+        await fetch(`${API_BASE}/reviews/${schoolId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rating, review_text })
+        });
+        document.getElementById('add-review-form').reset();
+        highlightStars(currentRating); // Reset stars
+        loadReviews();
+      };
+      loadSchool();
+      loadReviews();
+    });
+  </script>
+</body>
+</html> 

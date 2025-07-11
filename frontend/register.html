@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Schoolzy</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="auth-container">
+    <form id="register-form" class="auth-form">
+      <h1>Register</h1>
+      <input type="text" id="register-name" placeholder="Name" required>
+      <input type="email" id="register-email" placeholder="Email" required>
+      <input type="password" id="register-password" placeholder="Password" required>
+      <button type="submit">Register</button>
+      <div class="auth-extra">Already have an account? <a class="auth-link" href="login.html">Login here</a></div>
+    </form>
+  </div>
+  <script>
+    document.getElementById('register-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const name = document.getElementById('register-name').value;
+      const email = document.getElementById('register-email').value;
+      const password = document.getElementById('register-password').value;
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert('Registration successful! Please login.');
+        window.location.href = 'login.html';
+      } else {
+        alert(data.message || 'Registration failed');
+      }
+    });
+  </script>
+</body>
+</html> 

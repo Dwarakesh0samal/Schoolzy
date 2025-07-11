@@ -18,6 +18,8 @@ const normalizeFieldName = (fieldName) => {
 const standardSchoolFields = {
   name: '',
   location: '',
+  city: '',
+  state: '',
   category: '',
   type: '',
   description: '',
@@ -32,7 +34,8 @@ const standardSchoolFields = {
   facilities: [],
   established: null,
   createdAt: null,
-  updatedAt: null
+  updatedAt: null,
+  fee: ''
 };
 
 /**
@@ -56,6 +59,8 @@ const sanitizeSchool = (school) => {
     switch (normalizedKey) {
       case 'name':
       case 'location':
+      case 'city':
+      case 'state':
       case 'category':
       case 'type':
       case 'description':

@@ -7,6 +7,7 @@
     <meta name="keywords" content="schools, education, reviews, find school, school directory">
     <meta name="author" content="Schoolzy">
     <meta name="theme-color" content="#667eea">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com; script-src 'self' 'unsafe-inline' https://unpkg.com https://www.gstatic.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data: https://unpkg.com https://raw.githubusercontent.com https://*.tile.openstreetmap.org; connect-src 'self' https://nominatim.openstreetmap.org;">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
@@ -26,33 +27,179 @@
     
     <!-- Preload critical resources -->
     <link rel="preload" href="styles.min.css" as="style">
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" as="style">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
     <link rel="preload" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" as="style">
     
     <!-- Stylesheets -->
     <link rel="stylesheet" href="styles.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="styles.css">
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <style>
+      body, html {
+        height: 100%;
+      }
+      .hero {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2.5rem 0 3.5rem 0;
+      }
+      .hero .container {
+        width: 100%;
+        max-width: 100vw;
+        margin: 0;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
+      .hero-content {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 5rem;
+        width: 100%;
+      }
+      .hero-main {
+        flex: 2 1 340px;
+        min-width: 260px;
+        margin-left: 0;
+      }
+      .hero-main h1 {
+        font-size: 3rem;
+        margin-bottom: 1.2rem;
+      }
+      .hero-main p {
+        font-size: 1.25rem;
+        color: #e2e8f0;
+        margin-bottom: 0;
+      }
+      .hero-buttons-col {
+        flex: 1 1 280px;
+        min-width: 220px;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+        align-items: stretch;
+        background: rgba(255,255,255,0.13);
+        border-radius: 22px;
+        box-shadow: 0 6px 32px rgba(0,0,0,0.13);
+        padding: 2.2rem 2rem;
+        max-width: 260px;
+      }
+      .hero-buttons-col a {
+        width: 100%;
+        max-width: 220px;
+        font-size: 1.15rem;
+      }
+      @media (max-width: 900px) {
+        .hero-content {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 2rem;
+          max-width: 98vw;
+          justify-content: center;
+        }
+        .hero-main {
+          margin-left: 0;
+        }
+        .hero .container {
+          padding-left: 0.3rem;
+          padding-right: 0.3rem;
+        }
+        .hero-buttons-col {
+          align-items: stretch;
+          padding: 1.2rem 1rem;
+          max-width: 100%;
+          margin-top: 2.5rem;
+        }
+      }
+      @media (max-width: 600px) {
+        .hero-main h1 {
+          font-size: 2.1rem;
+        }
+        .hero-main p {
+          font-size: 1.05rem;
+        }
+        .hero {
+          min-height: 70vh;
+          padding: 1.2rem 0 2rem 0;
+        }
+        .hero .container {
+          padding-left: 0.2rem;
+          padding-right: 0.2rem;
+        }
+      }
+      .nav-logo-img {
+        height: 48px;
+        width: auto;
+        display: block;
+        margin-left: 2px;
+        margin-right: 0;
+        padding: 0;
+        box-shadow: none;
+        background: none;
+        border: none;
+        object-fit: contain;
+      }
+      .nav-logo {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        text-decoration: none;
+      }
+      .hero-main-bg {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 0;
+        opacity: 0.22;
+        width: 520px;
+        max-width: 90vw;
+        filter: blur(2.5px) drop-shadow(0 8px 32px rgba(80,80,120,0.18));
+        pointer-events: none;
+        user-select: none;
+        transition: opacity 0.3s, filter 0.3s;
+      }
+      .hero-main {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        padding: 2.5rem 0 2.5rem 0;
+      }
+      @media (max-width: 700px) {
+        .hero-main-bg {
+          width: 80vw;
+          max-width: 98vw;
+          filter: blur(1.5px) drop-shadow(0 4px 16px rgba(80,80,120,0.13));
+        }
+        .hero-main {
+          padding: 1.2rem 0 1.2rem 0;
+        }
+      }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-logo">
-                <i class="fas fa-graduation-cap" aria-hidden="true"></i>
-                <span>Schoolzy</span>
-            </div>
+            <a href="index.html" class="nav-logo">
+                <img src="logo-white.png" alt="Schoolzy Logo" class="nav-logo-img" />
+            </a>
             <div class="nav-menu">
-                <a href="#home" class="nav-link">Home</a>
-                <a href="#schools" class="nav-link">Schools</a>
-                <a href="#map" class="nav-link">Map</a>
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="schools.html" class="nav-link">Schools</a>
+                <a href="map.html" class="nav-link">Map</a>
                 <a href="#about" class="nav-link">About</a>
+                <a href="admin-dashboard.html" class="nav-link" id="admin-link" style="display:none;">Admin</a>
             </div>
             <div class="nav-auth">
                 <div id="user-info-container" style="position: relative;">
@@ -60,13 +207,11 @@
                         <img id="user-avatar" src="" alt="User" class="user-avatar profile-avatar-btn">
                         <span id="profile-caret" class="profile-caret">▼</span>
                         <span id="user-name"></span>
-                        <div id="profile-dropdown" class="profile-dropdown hidden">
-                            <button id="profile-edit-btn" class="dropdown-item">Edit Profile</button>
-                            <button id="profile-verify-btn" class="dropdown-item">Email Verification</button>
+                        <div id="profile-dropdown" class="profile-menu-dropdown hidden">
+                            <button id="profile-edit-btn" class="profile-menu-btn">Edit Profile</button>
+                            <button id="profile-verify-btn" class="profile-menu-btn">Email Verification</button>
                             <div class="dropdown-divider"></div>
-                            <button id="theme-toggle-btn" class="dropdown-item">Switch to Dark Mode</button>
-                            <div class="dropdown-divider"></div>
-                            <button id="logout-btn" class="dropdown-item">Logout</button>
+                            <button id="logout-btn" class="profile-menu-btn">Logout</button>
                         </div>
                     </div>
                 </div>
@@ -80,46 +225,22 @@
 
     <!-- Hero Section -->
     <section id="home" class="hero">
-        <div class="hero-content">
-            <h1>Find Your Perfect School</h1>
-            <p>Discover, compare, and review schools in your area. Make informed decisions about education.</p>
-            <div class="hero-buttons">
-                <button id="findSchoolsBtn" class="btn btn-primary btn-large">
-                    <i class="fas fa-search" aria-hidden="true"></i> Find Schools
-                </button>
-                <button id="viewMapBtn" class="btn btn-outline btn-large">
-                    <i class="fas fa-map-marker-alt" aria-hidden="true"></i> View Map
-                </button>
-            </div>
-        </div>
-        <div class="hero-image">
-            <i class="fas fa-graduation-cap" aria-hidden="true"></i>
-        </div>
-    </section>
-
-    <!-- Search Section -->
-    <section class="search-section">
         <div class="container">
-            <div class="search-box">
-                <input type="text" id="school-search" placeholder="Search schools by name, location, or category..." aria-label="Search schools">
-                <select id="category-filter" aria-label="Filter by category">
-                    <option value="">All Categories</option>
-                    <option value="Elementary">Elementary</option>
-                    <option value="Middle">Middle</option>
-                    <option value="High">High</option>
-                    <option value="Private">Private</option>
-                    <option value="Public">Public</option>
-                </select>
-                <select id="rating-filter" aria-label="Filter by rating">
-                    <option value="">All Ratings</option>
-                    <option value="4">4+ Stars</option>
-                    <option value="3">3+ Stars</option>
-                    <option value="2">2+ Stars</option>
-                </select>
-                <button id="search-btn" class="btn btn-primary">
-                    <i class="fas fa-search" aria-hidden="true"></i> Search
-                </button>
+        <div class="hero-content">
+                <div class="hero-main">
+                    <img src="image.png" alt="School Pin" class="hero-main-bg" />
+                    <h1>Find Your Perfect School</h1>
+                    <p>Discover, compare, and review schools in your area. Make informed decisions about education.</p>
+                </div>
+                <div class="hero-buttons-col">
+                <a href="schools.html" id="findSchoolsBtn" class="btn btn-primary btn-large">
+                    <i class="fas fa-search" aria-hidden="true"></i> Find Schools
+                </a>
+                <a href="map.html" id="viewMapBtn" class="btn btn-outline btn-large">
+                    <i class="fas fa-map-marker-alt" aria-hidden="true"></i> View Map
+                </a>
             </div>
+        </div>
         </div>
     </section>
 
@@ -136,122 +257,39 @@
         </div>
     </section>
 
-    <!-- Map Section -->
-    <section id="map" class="map-section hidden">
-        <div class="container">
-            <h2>Find Schools Near You</h2>
-            <div class="location-search-box">
-                <input type="text" id="city-search" placeholder="Enter city or location (e.g., Bhubaneswar)" aria-label="Search by city">
-                <button id="city-search-btn" class="btn btn-primary">
-                    <i class="fas fa-search" aria-hidden="true"></i> Search
-                </button>
-            </div>
-            <div id="map-container" class="map-container">
-                <!-- Leaflet map will be loaded here -->
-            </div>
-            <div class="map-controls">
-                <button id="locate-btn" class="btn btn-primary">
-                    <i class="fas fa-location-arrow" aria-hidden="true"></i> Use My Location
-                </button>
-                <input type="number" id="radius-input" placeholder="Radius (km)" value="10" min="1" max="50" aria-label="Search radius in kilometers">
-            </div>
-        </div>
-    </section>
-
-    <!-- Prompt Section -->
-    <section id="prompt-section" class="about-section">
-        <div class="container">
-            <h2>Welcome to Schoolzy</h2>
-            <p id="prompt-message">Please log in and enter your location to find schools near you.</p>
-        </div>
-    </section>
-
-    <!-- School Details Modal -->
-    <div id="school-modal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <div id="school-details">
-                <!-- School details will be loaded here -->
-            </div>
-        </div>
-    </div>
-
     <!-- Login Modal -->
     <div id="login-modal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Login to Schoolzy</h2>
-            <div class="auth-options">
-                <button id="google-login" class="btn btn-google">
-                    <i class="fab fa-google" aria-hidden="true"></i> Continue with Google
-                </button>
-                <div class="divider">or</div>
-                <form id="login-form" class="auth-form">
-                    <input type="email" id="login-email" placeholder="Email" required aria-label="Email address">
-                    <input type="password" id="login-password" placeholder="Password" required aria-label="Password">
-                    <button type="submit" class="btn btn-primary">Login</button>
-                </form>
-            </div>
-        </div>
+      <div class="modal-content">
+        <!-- Login form here -->
+      </div>
     </div>
 
     <!-- Register Modal -->
     <div id="register-modal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Join Schoolzy</h2>
-            <div class="auth-options">
-                <button id="google-register" class="btn btn-google">
-                    <i class="fab fa-google" aria-hidden="true"></i> Continue with Google
-                </button>
-                <div class="divider">or</div>
-                <form id="register-form" class="auth-form">
-                    <input type="text" id="register-name" placeholder="Full Name" required aria-label="Full name">
-                    <input type="email" id="register-email" placeholder="Email" required aria-label="Email address">
-                    <input type="password" id="register-password" placeholder="Password" required aria-label="Password">
-                    <button type="submit" class="btn btn-primary">Register</button>
-                </form>
-            </div>
-        </div>
+      <div class="modal-content">
+        <!-- Register form here -->
+      </div>
     </div>
 
     <!-- Edit Profile Modal -->
     <div id="edit-profile-modal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Edit Profile</h2>
-            <form id="edit-profile-form" class="auth-form" enctype="multipart/form-data">
-                <input type="text" id="edit-name" placeholder="Full Name" required aria-label="Full name">
-                <input type="email" id="edit-email" placeholder="Email" required aria-label="Email address">
-                <div class="profile-pic-upload">
-                    <label for="edit-profile-picture">Profile Picture:</label>
-                    <input type="file" id="edit-profile-picture" accept="image/*" aria-label="Upload profile picture">
-                    <img id="edit-profile-preview" src="" alt="Preview" class="profile-pic-preview hidden">
-                </div>
-                <button type="submit" class="btn btn-primary">Save Changes</button>
-            </form>
-        </div>
+      <div class="modal-content">
+        <!-- Edit profile form here -->
+      </div>
     </div>
 
     <!-- Email Verification Modal -->
     <div id="email-verification-modal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Email Verification</h2>
-            <p>A verification link will be sent to your email address. (Feature coming soon!)</p>
-            <button class="btn btn-primary" id="send-verification-btn">Send Verification Email</button>
-        </div>
+      <div class="modal-content">
+        <!-- Email verification form here -->
+      </div>
     </div>
 
     <!-- Logout Confirmation Modal -->
     <div id="logout-modal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Confirm Logout</h2>
-            <p>Are you sure you want to log out?</p>
-            <button class="btn btn-primary" id="confirm-logout-btn">Logout</button>
-            <button class="btn btn-outline" id="cancel-logout-btn">Cancel</button>
-        </div>
+      <div class="modal-content">
+        <!-- Logout confirmation here -->
+      </div>
     </div>
 
     <!-- About Section -->
@@ -283,6 +321,27 @@
         </div>
     </section>
 
+    <!-- Map Section -->
+    <!--
+    <section id="map" class="map-section hidden">
+        <div class="container">
+            <h2>Find Schools Near You</h2>
+            <div class="location-search-box">
+                <input type="text" id="city-search" placeholder="Enter city or location (e.g., Bhubaneswar)" aria-label="Search by city">
+                <button id="city-search-btn" class="btn btn-primary">
+                    <i class="fas fa-search" aria-hidden="true"></i> Search
+                </button>
+            </div>
+            <div class="map-controls">
+                <button id="locate-btn" class="btn btn-primary">
+                    <i class="fas fa-location-arrow" aria-hidden="true"></i> Use My Location
+                </button>
+                <input type="number" id="radius-input" placeholder="Radius (km)" value="10" min="1" max="50" aria-label="Search radius in kilometers">
+            </div>
+        </div>
+    </section>
+    -->
+
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
@@ -312,7 +371,107 @@
 
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script type="module" src="config.js"></script>
-    <script type="module" src="/app.js"></script>
+    <script src="config.js"></script>
+    <script src="/app.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var map = L.map('map-container').setView([20.2961, 85.8245], 13); // Default: Bhubaneswar
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      // User location marker (blue)
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+          var lat = pos.coords.latitude;
+          var lng = pos.coords.longitude;
+          var userIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+          });
+          L.marker([lat, lng], {icon: userIcon}).addTo(map).bindPopup('You are here!').openPopup();
+          map.setView([lat, lng], 13);
+        });
+      }
+
+      // School markers
+      fetch('/api/schools')
+        .then(res => res.json())
+        .then(data => {
+          (data.schools || []).forEach(school => {
+            if (school.latitude && school.longitude) {
+              L.marker([school.latitude, school.longitude])
+                .addTo(map)
+                .bindPopup(`<b>${school.name}</b><br>${school.location}`);
+            }
+          });
+        });
+    });
+    </script>
+
+    <div id="school-modal" class="modal hidden">
+      <div class="school-modal">
+        <button class="modal-close" aria-label="Close modal">&times;</button>
+        <h2 class="modal-title">Mother's Public School</h2>
+        <div class="modal-info">
+          <div class="modal-row">
+            <span class="modal-label"><i class="fas fa-map-marker-alt"></i> Location:</span>
+            <span>Bhubaneswar</span>
+          </div>
+          <div class="modal-row">
+            <span class="modal-label"><i class="fas fa-graduation-cap"></i> Category:</span>
+            <span>CBSE</span>
+          </div>
+          <div class="modal-row">
+            <span class="modal-label"><i class="fas fa-star"></i> Rating:</span>
+            <span class="modal-rating">
+              <span class="star">&#9733;</span> 4.4 <span class="reviews">(60 reviews)</span>
+            </span>
+          </div>
+        </div>
+        <p class="modal-description">
+          Popular CBSE school with a strong emphasis on values and all-round development.
+        </p>
+        <div class="modal-actions">
+          <a href="https://mothers.edu.in" target="_blank" class="btn btn-primary">
+            <i class="fas fa-external-link-alt"></i> Visit School Website
+          </a>
+          <button class="btn btn-secondary">
+            <i class="fas fa-pen"></i> Add Review
+          </button>
+        </div>
+      </div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDtDvdCi-sxXwZaJJfJkgs29_7QzXiivM8",
+  authDomain: "schoolzy-c28c5.firebaseapp.com",
+  projectId: "schoolzy-c28c5",
+  storageBucket: "schoolzy-c28c5.firebasestorage.app",
+  messagingSenderId: "229767328669",
+  appId: "1:229767328669:web:8beae1876e475df6213574",
+  measurementId: "G-SNE5MBVK1C"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const adminLink = document.getElementById('admin-link');
+auth.onAuthStateChanged(async user => {
+  if (!user) return;
+  try {
+    const userDoc = await db.collection('users').doc(user.uid).get();
+    if (userDoc.exists && userDoc.data().role === 'admin') {
+      adminLink.style.display = 'inline-block';
+    }
+  } catch (e) {}
+});
+</script>
 </body>
 </html> 

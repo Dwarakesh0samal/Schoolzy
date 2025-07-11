@@ -15,6 +15,11 @@
   </nav>
   <main class="main-centered">
     <div class="container" style="margin-top: 60px;">
+      <div id="school-search-bar" style="margin-bottom: 2rem; text-align:center;">
+        <input type="text" id="school-search-input" placeholder="Search schools by name..." style="padding:0.5rem; width:60%; max-width:300px;">
+        <button id="school-search-btn" class="btn btn-primary" style="margin-left:0.5rem;">Search</button>
+        <div id="school-search-results" style="margin-top:1rem;"></div>
+      </div>
       <div id="school-details"></div>
       <h3>Reviews</h3>
       <div id="reviews-list"></div>
@@ -86,6 +91,21 @@
       } else {
         userFields.style.display = 'flex';
       }
+      if (sessionStorage.getItem('isDemoUser') === 'true') {
+        const reviewForm = document.getElementById('add-review-form');
+        if (reviewForm) {
+          reviewForm.style.display = 'none';
+          let demoMsg = document.getElementById('demo-review-msg');
+          if (!demoMsg) {
+            demoMsg = document.createElement('div');
+            demoMsg.id = 'demo-review-msg';
+            demoMsg.textContent = "Demo users cannot submit reviews.";
+            demoMsg.style.color = '#2563eb';
+            demoMsg.style.fontWeight = 'bold';
+            reviewForm.parentNode.insertBefore(demoMsg, reviewForm.nextSibling);
+          }
+        }
+      }
     }
     updateReviewFormForUser();
     // --- End user info logic ---
@@ -139,6 +159,32 @@
     highlightStars(currentRating);
     loadSchool();
     loadReviews();
+    // --- School name search logic ---
+    const API_BASE_SEARCH = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL)
+      ? import.meta.env.VITE_API_URL + '/api'
+      : (window.SCHOOLZY_CONFIG ? window.SCHOOLZY_CONFIG.API_BASE_URL : '/api');
+    document.getElementById('school-search-btn').onclick = async function() {
+      const query = document.getElementById('school-search-input').value.trim();
+      const resultsDiv = document.getElementById('school-search-results');
+      if (!query) { resultsDiv.innerHTML = '<em>Please enter a school name.</em>'; return; }
+      resultsDiv.innerHTML = 'Searching...';
+      try {
+        const res = await fetch(`${API_BASE_SEARCH}/schools?name=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        const schools = data.schools || [];
+        if (schools.length === 0) {
+          resultsDiv.innerHTML = '<em>No schools found.</em>';
+        } else {
+          resultsDiv.innerHTML = schools.map(s => `<a href="school.html?id=${s.id}" class="btn btn-outline" style="display:block;margin:0.3rem auto;">${s.name}</a>`).join('');
+        }
+      } catch (err) {
+        resultsDiv.innerHTML = '<span style="color:red;">Error searching schools.</span>';
+      }
+    };
+    document.getElementById('school-search-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') document.getElementById('school-search-btn').click();
+    });
+    // --- End school name search logic ---
   </script>
   <style>
     body {

@@ -5,104 +5,151 @@ let schools = [];
 let markers = [];
 
 // API base URL - use Vite env if available
-const API_BASE = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL
+const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL)
   ? import.meta.env.VITE_API_URL + '/api'
   : (window.SCHOOLZY_CONFIG ? window.SCHOOLZY_CONFIG.API_BASE_URL : '/api');
-console.log('API_BASE:', API_BASE);
+console.log('[DEBUG] API_BASE:', API_BASE);
 
 // Loading state management
 let isLoading = false;
 
 // Initialize the application
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing Schoolzy app...');
-    console.log('API Base URL:', API_BASE);
-    
-    initializeApp();
-    const userInfo = document.getElementById('user-info');
-    const dropdown = document.getElementById('profile-dropdown');
+document.addEventListener('DOMContentLoaded', () => {
+  // Page-specific logic
+  const path = window.location.pathname;
 
+  // Login button
+  const loginBtn = document.getElementById('login-btn');
+  if (loginBtn) {
+    loginBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      window.location.href = 'login.html';
+    });
+  }
+
+  // Register button
+  const registerBtn = document.getElementById('register-btn');
+  if (registerBtn) {
+    registerBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      window.location.href = 'register.html';
+    });
+  }
+
+  // Demo Login button
+  const demoLoginBtn = document.getElementById('demo-login-btn');
+  if (demoLoginBtn) {
+    demoLoginBtn.addEventListener('click', async function() {
+      const email = 'demo@schoolzy.com';
+      const password = 'demopasswordnow';
+      const emailInput = document.getElementById('login-email');
+      const passwordInput = document.getElementById('login-password');
+      if (emailInput && passwordInput) {
+        emailInput.value = email;
+        passwordInput.value = password;
+        const loginForm = document.getElementById('login-form');
+        if (loginForm) {
+          loginForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+      }
+    });
+  }
+
+  // Login form
+  const loginForm = document.getElementById('login-form');
+  if (loginForm) loginForm.addEventListener('submit', handleLoginSubmit);
+
+  // Register form
+  const registerForm = document.getElementById('register-form');
+  if (registerForm) registerForm.addEventListener('submit', handleRegister);
+
+  // Schools page logic
+  if (document.getElementById('schools-grid')) {
+    loadSchools();
+    const searchBtn = document.getElementById('search-btn');
+    if (searchBtn) searchBtn.addEventListener('click', handleSearch);
+    const schoolSearch = document.getElementById('school-search');
+    if (schoolSearch) schoolSearch.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSearch(); });
+    const categoryFilter = document.getElementById('category-filter');
+    if (categoryFilter) categoryFilter.addEventListener('change', handleSearch);
+    const ratingFilter = document.getElementById('rating-filter');
+    if (ratingFilter) ratingFilter.addEventListener('change', handleSearch);
+  }
+
+  // Map page logic
+  if (path.endsWith('map.html') && typeof initializeMap === 'function') {
+    initializeMap();
+    // Add map-specific event listeners here, with null checks if needed
+  }
+
+  // Edit Profile button (dropdown)
+  const editProfileBtn = document.getElementById('profile-edit-btn');
+  if (editProfileBtn) {
+    editProfileBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      window.location.href = 'edit-profile.html';
+    });
+  }
+
+  // Email Verification button (dropdown)
+  const emailVerifyBtn = document.getElementById('profile-verify-btn');
+  if (emailVerifyBtn) {
+    emailVerifyBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      window.location.href = 'email-verification.html';
+    });
+  }
+
+  // Edit Profile form
+  const editProfileForm = document.getElementById('edit-profile-form');
+  if (editProfileForm) editProfileForm.addEventListener('submit', handleEditProfileSubmit);
+
+  // Edit Profile picture
+  const editProfilePicture = document.getElementById('edit-profile-picture');
+  if (editProfilePicture) editProfilePicture.addEventListener('change', handleProfilePicPreview);
+
+  // Profile dropdown
+  const userInfo = document.getElementById('user-info');
+  const profileDropdown = document.getElementById('profile-dropdown');
+  if (userInfo && profileDropdown) {
     userInfo.addEventListener('click', function(e) {
-        e.stopPropagation();
-        dropdown.classList.toggle('hidden');
+      e.stopPropagation();
+      profileDropdown.classList.toggle('hidden');
     });
-
     document.addEventListener('click', function() {
-        dropdown.classList.add('hidden');
+      profileDropdown.classList.add('hidden');
     });
+  }
 
-    // Dropdown option handlers (navigate to pages)
-    document.getElementById('profile-edit-btn').addEventListener('click', function(e) {
-        e.stopPropagation();
-        window.location.href = 'edit-profile.html';
-    });
-    document.getElementById('profile-verify-btn').addEventListener('click', function(e) {
-        e.stopPropagation();
-        window.location.href = 'email-verification.html';
-    });
-    document.getElementById('logout-btn').addEventListener('click', function(e) {
-        e.stopPropagation();
-        window.location.href = 'logout.html';
-    });
-    document.getElementById('cancel-logout-btn').addEventListener('click', function() {
-        hideModal('logout-modal');
-    });
-    document.getElementById('confirm-logout-btn').addEventListener('click', function() {
-        hideModal('logout-modal');
-        logout();
-    });
-    // Email verification button (placeholder)
-    const sendVerificationBtn = document.getElementById('send-verification-btn');
-    if (sendVerificationBtn) {
-        sendVerificationBtn.addEventListener('click', function() {
-            alert('Verification email feature coming soon!');
-            hideModal('email-verification-modal');
-        });
-    }
+  // Logout button
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', logout);
+  }
 
-    // Find Schools
-    const findSchoolsBtn = document.getElementById('findSchoolsBtn');
-    if (findSchoolsBtn) {
-        findSchoolsBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            window.location.href = 'schools.html';
-        });
-    } else {
-        console.warn('Find Schools button (#findSchoolsBtn) not found');
-    }
+  // Profile pic preview
+  const profilePicInput = document.getElementById('profile-pic-input');
+  if (profilePicInput) {
+    profilePicInput.addEventListener('change', handleProfilePicPreview);
+  }
 
-    // View Map
-    const viewMapBtn = document.getElementById('viewMapBtn');
-    if (viewMapBtn) {
-        viewMapBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            window.location.href = 'map.html';
-        });
-    } else {
-        console.warn('View Map button (#viewMapBtn) not found');
-    }
+  // Map initialization (Leaflet)
+  const mapEl = document.getElementById('map-container');
+  if (mapEl) {
+    const map = L.map('map-container').setView([20.3, 85.8], 13);
+    // Continue map setup here...
+  }
 
-    // Login
-    const loginBtn = document.getElementById('login-btn');
-    if (loginBtn) {
-        loginBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            window.location.href = 'login.html';
-        });
-    } else {
-        console.warn('Login button (#login-btn) not found');
-    }
+  // Theme toggle button
+  const themeToggleBtn = document.getElementById('theme-toggle-btn');
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      toggleTheme();
+    });
+  }
 
-    // Register
-    const registerBtn = document.getElementById('register-btn');
-    if (registerBtn) {
-        registerBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            window.location.href = 'register.html';
-        });
-    } else {
-        console.warn('Register button (#register-btn) not found');
-    }
+  // Add other event listeners here, always with null checks
 });
 
 // Connectivity test function
@@ -153,35 +200,60 @@ async function checkBackendHealth() {
     }
 }
 
+function initSchoolsPage() {
+    if (!document.getElementById('schools-grid')) return;
+    loadSchools();
+    const searchBtn = document.getElementById('search-btn');
+    if (searchBtn) searchBtn.addEventListener('click', handleSearch);
+    const schoolSearch = document.getElementById('school-search');
+    if (schoolSearch) schoolSearch.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSearch(); });
+    const categoryFilter = document.getElementById('category-filter');
+    if (categoryFilter) categoryFilter.addEventListener('change', handleSearch);
+    const ratingFilter = document.getElementById('rating-filter');
+    if (ratingFilter) ratingFilter.addEventListener('change', handleSearch);
+}
+
+function initMapPage() {
+    if (!window.location.pathname.endsWith('map.html')) return;
+    if (typeof initializeMap === 'function') initializeMap();
+    // Add map-specific event listeners here, with null checks if needed
+}
+
+function initAuthModals() {
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) loginForm.addEventListener('submit', handleLoginSubmit);
+    const registerForm = document.getElementById('register-form');
+    if (registerForm) registerForm.addEventListener('submit', handleRegister);
+    const editProfileBtn = document.getElementById('edit-profile-btn');
+    if (editProfileBtn) editProfileBtn.addEventListener('click', openEditProfileModal);
+    const editProfileForm = document.getElementById('edit-profile-form');
+    if (editProfileForm) editProfileForm.addEventListener('submit', handleEditProfileSubmit);
+    const editProfilePicture = document.getElementById('edit-profile-picture');
+    if (editProfilePicture) editProfilePicture.addEventListener('change', handleProfilePicPreview);
+}
+
+function initProfileDropdown() {
+    const userInfo = document.getElementById('user-info');
+    const dropdown = document.getElementById('profile-dropdown');
+    if (userInfo && dropdown) {
+        userInfo.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
+        document.addEventListener('click', function() {
+            dropdown.classList.add('hidden');
+        });
+    }
+}
+
 async function initializeApp() {
     try {
         showLoadingMessage('Initializing app...');
-        
-        // Test backend connectivity first
-        const isConnected = await testBackendConnectivity();
-        if (!isConnected) {
-            showErrorMessage('Cannot connect to backend server. Please check your internet connection.');
-            hideLoadingMessage();
-            return;
-        }
-        
-        // Check backend health
-        const health = await checkBackendHealth();
-        if (health) {
-            console.log('Backend environment:', health.environment);
-            console.log('Firebase configured:', health.firebase.configured);
-        }
-        
         await checkAuthStatus();
-        await loadSchools();
-        initializeMap();
-        
-        // Load schools on map if user is authenticated
-        if (currentUser) {
-            await loadSchoolsOnMap();
-        }
-        
-        setupEventListeners();
+        initSchoolsPage();
+        initMapPage();
+        initAuthModals();
+        initProfileDropdown();
         hideLoadingMessage();
     } catch (error) {
         console.error('App initialization error:', error);
@@ -265,7 +337,7 @@ async function checkAuthStatus() {
                 const user = await res.json();
                 currentUser = user;
                 localStorage.setItem('user', JSON.stringify(user));
-                updateUIForAuthenticatedUser();
+                updateUIForAuthenticatedUser(user);
                 console.log('User authenticated:', user.name);
                 return;
             } else {
@@ -283,18 +355,48 @@ async function checkAuthStatus() {
     updateUIForUnauthenticatedUser();
 }
 
-function updateUIForAuthenticatedUser() {
-    document.getElementById('auth-buttons').classList.add('hidden');
-    document.getElementById('user-info').classList.remove('hidden');
-    currentUser = currentUser || {};
-    const userName = document.getElementById('user-name');
-    const userAvatar = document.getElementById('user-avatar');
-    userName.textContent = currentUser.name;
-    if (currentUser.profile_picture) {
-        userAvatar.src = currentUser.profile_picture;
+function updateUIForAuthenticatedUser(user) {
+    console.log('[DEBUG] updateUIForAuthenticatedUser called', user);
+    const authButtons = document.getElementById('auth-buttons');
+    if (authButtons) {
+        authButtons.classList.add('hidden');
     } else {
-        userAvatar.src = 'https://via.placeholder.com/32x32/667eea/ffffff?text=' + currentUser.name.charAt(0);
+        console.warn('#auth-buttons not found');
     }
+
+    const userInfo = document.getElementById('user-info');
+    if (userInfo) {
+        userInfo.classList.remove('hidden');
+    } else {
+        console.warn('#user-info not found');
+    }
+
+    const userName = document.getElementById('user-name');
+    if (userName) {
+        userName.textContent = user && user.name ? user.name : 'User';
+    } else {
+        console.warn('#user-name not found');
+    }
+
+    const userAvatar = document.getElementById('user-avatar');
+    if (userAvatar) {
+        if (user && user.profile_picture) {
+            userAvatar.src = user.profile_picture;
+        } else {
+            userAvatar.src = 'default-avatar.png'; // fallback image
+        }
+    } else {
+        console.warn('#user-avatar not found');
+    }
+
+    const loginModal = document.getElementById('login-modal');
+    if (loginModal) {
+        loginModal.classList.add('hidden');
+    } else {
+        console.warn('#login-modal not found');
+    }
+
+    currentUser = currentUser || {};
     userAvatar.onclick = toggleProfileDropdown;
     // Show admin dashboard link if user is admin
     const dropdown = document.getElementById('profile-dropdown');
@@ -325,16 +427,22 @@ function updateUIForAuthenticatedUser() {
 }
 
 function updateUIForUnauthenticatedUser() {
-    document.getElementById('auth-buttons').classList.remove('hidden');
-    document.getElementById('user-info').classList.add('hidden');
+    const authButtons = document.getElementById('auth-buttons');
+    if (authButtons) authButtons.classList.remove('hidden');
+    const userInfo = document.getElementById('user-info');
+    if (userInfo) userInfo.classList.add('hidden');
     currentUser = null;
     // Hide admin dashboard link if present
     const adminLink = document.getElementById('admin-dashboard-btn');
     if (adminLink) adminLink.classList.add('hidden');
-    document.getElementById('schools').classList.add('hidden');
-    document.getElementById('map').classList.add('hidden');
-    document.getElementById('prompt-section').classList.remove('hidden');
-    document.getElementById('prompt-message').textContent = 'Please log in and enter your location to find schools near you.';
+    const schoolsSection = document.getElementById('schools');
+    if (schoolsSection) schoolsSection.classList.add('hidden');
+    const mapSection = document.getElementById('map');
+    if (mapSection) mapSection.classList.add('hidden');
+    const promptSection = document.getElementById('prompt-section');
+    if (promptSection) promptSection.classList.remove('hidden');
+    const promptMessage = document.getElementById('prompt-message');
+    if (promptMessage) promptMessage.textContent = 'Please log in and enter your location to find schools near you.';
 }
 
 // Modal functions
@@ -367,42 +475,44 @@ function hideAllModals() {
 async function loadSchools(filters = {}) {
     const loading = document.getElementById('loading');
     const schoolsGrid = document.getElementById('schools-grid');
-    
-    if (isLoading) {
-        console.log('Already loading schools, skipping...');
+    if (!loading || !schoolsGrid) {
+        console.warn('[DEBUG] Skipping loadSchools: missing loading or schoolsGrid element');
         return;
     }
-    
+    if (isLoading) {
+        console.log('[DEBUG] Already loading schools, skipping...');
+        return;
+    }
     isLoading = true;
     loading.classList.remove('hidden');
     schoolsGrid.innerHTML = '';
     
     try {
-        console.log('Loading schools with filters:', filters);
+        console.log('[DEBUG] Loading schools with filters:', filters);
         const queryParams = new URLSearchParams(filters).toString();
         const url = `${API_BASE}/schools?${queryParams}`;
-        console.log('Fetching from URL:', url);
+        console.log('[DEBUG] Fetching from URL:', url);
         
         const response = await fetch(url);
-        console.log('Response status:', response.status);
+        console.log('[DEBUG] Response status:', response.status);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
         }
         
         const data = await response.json();
-        console.log('Schools API response:', data);
+        console.log('[DEBUG] Schools API response:', data);
         
         // Handle the correct API response structure
         const schoolsData = 
          data.schools || data || [];
         schools = schoolsData;
         
-        console.log(`Loaded ${schools.length} schools`);
+        console.log(`[DEBUG] Loaded ${schools.length} schools`);
         displaySchools(schools);
     } catch (error) {
-        console.error('Error loading schools:', error);
-        const errorMessage = `Error loading schools: ${error.message}`;
+        console.error('[DEBUG] Error loading schools:', error);
+        const errorMessage = `[DEBUG] Error loading schools: ${error.message}`;
         schoolsGrid.innerHTML = `<p class="error">${errorMessage}</p>`;
         showErrorMessage(errorMessage);
     } finally {
@@ -450,6 +560,7 @@ async function showSchoolDetails(schoolId) {
                 <p><i class="fas fa-map-marker-alt"></i> ${school.location}</p>
                 <p><i class="fas fa-star"></i> ${(school.averageRating || 0).toFixed(1)} (${school.reviewCount || 0} reviews)</p>
                 <p><i class="fas fa-tag"></i> ${school.category || 'School'}</p>
+                <p><i class="fas fa-rupee-sign"></i> Fee: ${school.fee ? school.fee : 'Not available'}</p>
                 ${school.phone ? `<p><i class="fas fa-phone"></i> ${school.phone}</p>` : ''}
                 ${school.website ? `<p><i class="fas fa-globe"></i> <a href="${school.website}" target="_blank">${school.website}</a></p>` : ''}
             </div>
@@ -488,146 +599,679 @@ async function showSchoolDetails(schoolId) {
     }
 }
 
-// Map functions
-function initializeMap() {
-    const mapContainer = document.getElementById('map-container');
-    if (!mapContainer) {
-        console.error('Map container not found!');
-        return;
+// Only run map code on map.html
+if (window.location.pathname.endsWith('map.html')) {
+  // Map functions
+  function isValidLeafletMap(map) {
+      return map && typeof map.setView === 'function' && typeof map.invalidateSize === 'function' && typeof map.remove === 'function';
+  }
+
+  function initializeMap(center = [20.2961, 85.8245], zoom = 13) {
+      let mapContainer = document.getElementById('map-container');
+      if (!mapContainer) {
+          console.error('[DEBUG] Map container not found!');
+          return;
+      }
+      mapContainer.style.display = 'block';
+      mapContainer.style.height = '500px';
+
+      // Remove all markers to prevent memory leaks
+      if (window.markers && Array.isArray(window.markers)) {
+          window.markers.forEach(marker => {
+              if (marker && typeof marker.remove === 'function') marker.remove();
+          });
+          window.markers = [];
+          console.debug('[DEBUG] Cleared all existing markers');
+      } else {
+          window.markers = [];
+      }
+
+      // Check if window.map is a valid Leaflet map instance
+      if (isValidLeafletMap(window.map)) {
+          if (typeof window.map.invalidateSize === 'function') {
+              window.map.invalidateSize();
+              window.map.setView(center, zoom);
+              console.debug('[DEBUG] Leaflet map reused');
+              return window.map;
+          }
+      } else if (window.map) {
+          // Fallback: remove corrupted map instance and container
+          try {
+              if (typeof window.map.remove === 'function') {
+                  window.map.remove();
+                  console.debug('[DEBUG] Corrupted map instance removed');
+              }
+          } catch (e) {
+              console.warn('[DEBUG] Error removing corrupted map:', e);
+          }
+          // Remove and recreate the map container
+          if (mapContainer.parentNode) {
+              mapContainer.parentNode.removeChild(mapContainer);
+              console.debug('[DEBUG] Removed corrupted map container');
+          }
+          // Recreate the map container
+          mapContainer = document.createElement('div');
+          mapContainer.id = 'map-container';
+          mapContainer.className = 'map-container';
+          mapContainer.style.height = '500px';
+          // Insert at the same place in the DOM (assume parent is .container)
+          const mapSection = document.querySelector('.map-section .container');
+          if (mapSection) {
+              const controls = mapSection.querySelector('.map-controls');
+              if (controls) {
+                  mapSection.insertBefore(mapContainer, controls);
+              } else {
+                  mapSection.appendChild(mapContainer);
+              }
+          } else {
+              document.body.appendChild(mapContainer);
+          }
+          console.debug('[DEBUG] Recreated map container');
+      }
+      // Create new map
+      window.map = L.map('map-container').setView(center, zoom);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors'
+      }).addTo(window.map);
+      window.markers = [];
+      console.debug('[DEBUG] Leaflet map created');
+      return window.map;
+  }
+
+  // Helper function to clear map error messages
+  function clearMapMessages() {
+      const mapContainer = document.getElementById('map-container');
+      if (mapContainer) {
+          const existingMessages = mapContainer.querySelectorAll('.map-error, .map-no-schools');
+          existingMessages.forEach(msg => msg.remove());
+      }
+  }
+
+  async function loadSchoolsOnMap(city) {
+      try {
+          let center = [20.2961, 85.8245];
+          if (city && typeof city === 'object' && city.lat && city.lng) {
+              center = [city.lat, city.lng];
+          }
+          const map = initializeMap(center, 13);
+          // ...then add markers to map and window.markers...
+          // Example:
+          // window.markers.push(L.marker(center).addTo(map));
+          // console.debug('[DEBUG] Marker added for city:', city);
+      } catch (err) {
+          console.error('[DEBUG] Error loading map data:', err);
+          showErrorToast('[DEBUG] Error loading schools. Please try again.');
+      }
+  }
+
+  function showNoSchoolsFoundOnMap() {
+      // You can customize this to show a message on the map or in the UI
+      alert('No schools found for this area.');
+  }
+
+  function findNearbySchools(lat, lng, radius = 10) {
+      // DEMO: Always show demo schools and markers
+      // Clear existing markers
+      markers.forEach(marker => map.removeLayer(marker));
+      markers = [];
+      const demoSchools = [
+          { id: 1, name: 'Bhubaneswar Public School', location: 'Bhubaneswar', latitude: 20.2961, longitude: 85.8245, distance: 1.2, rating: 4.5 },
+          { id: 2, name: 'DAV School', location: 'Bhubaneswar', latitude: 20.3000, longitude: 85.8200, distance: 2.1, rating: 4.2 },
+          { id: 3, name: 'KIIT International School', location: 'Bhubaneswar', latitude: 20.3100, longitude: 85.8300, distance: 3.5, rating: 4.8 },
+      ];
+      demoSchools.forEach(school => {
+          if (school.latitude && school.longitude) {
+              const marker = L.marker([school.latitude, school.longitude])
+                  .bindPopup(`
+                      <div class="map-popup">
+                          <h3>${school.name}</h3>
+                          <p>${school.location}</p>
+                          <p>Distance: ${school.distance.toFixed(1)} km</p>
+                          <p>Rating: ${(school.rating || 0).toFixed(1)} ⭐</p>
+                          <button onclick="showSchoolDetails(${school.id})" class="btn btn-primary btn-sm">
+                              View Details
+                          </button>
+                      </div>
+                  `);
+              marker.addTo(map);
+              markers.push(marker);
+          }
+      });
+      // Center map on user location
+      map.setView([lat, lng], 12);
+      // Add user location marker
+      const userMarker = L.marker([lat, lng], {
+          icon: L.divIcon({
+              className: 'user-location-marker',
+              html: '<i class="fas fa-user" style="color: #667eea; font-size: 20px;"></i>',
+              iconSize: [20, 20]
+          })
+      }).addTo(map);
+      markers.push(userMarker);
+  }
+
+  function handleCitySearch() {
+      if (!currentUser) {
+          alert('Please log in to search for schools.');
+          return;
+      }
+      const city = document.getElementById('city-search').value.trim();
+      const radius = document.getElementById('radius-input').value || 10;
+      if (!city) {
+          alert('Please enter a city or location.');
+          return;
+      }
+      // DEMO: Use dummy coordinates for any city
+      const lat = 20.2961;
+      const lng = 85.8245;
+      map.setView([lat, lng], 13);
+      findNearbySchools(lat, lng, radius);
+      document.getElementById('schools').classList.remove('hidden');
+  }
+
+  // Event listeners
+  function setupEventListeners() {
+      // Navigation
+      const loginBtn = document.getElementById('login-btn');
+      if (loginBtn) loginBtn.addEventListener('click', function() { window.location.href = 'login.html'; });
+      const registerBtn = document.getElementById('register-btn');
+      if (registerBtn) registerBtn.addEventListener('click', function() { window.location.href = 'register.html'; });
+      const logoutBtn = document.getElementById('logout-btn');
+      if (logoutBtn) logoutBtn.addEventListener('click', logout);
+      // Google OAuth
+      const googleLogin = document.getElementById('google-login');
+      if (googleLogin) googleLogin.addEventListener('click', function() { window.location.href = `${API_BASE}/auth/google`; });
+      const googleRegister = document.getElementById('google-register');
+      if (googleRegister) googleRegister.addEventListener('click', function() { window.location.href = `${API_BASE}/auth/google`; });
+      // Forms
+      const loginForm = document.getElementById('login-form');
+      if (loginForm) loginForm.addEventListener('submit', handleLoginSubmit);
+      const registerForm = document.getElementById('register-form');
+      if (registerForm) registerForm.addEventListener('submit', handleRegister);
+      // Search
+      const searchBtn = document.getElementById('search-btn');
+      if (searchBtn) searchBtn.addEventListener('click', handleSearch);
+      // Map controls
+      const locateBtn = document.getElementById('locate-btn');
+      if (locateBtn) locateBtn.addEventListener('click', handleLocation);
+      // Modals (remove modal code, use navigation instead)
+      // Search on Enter key
+      const schoolSearch = document.getElementById('school-search');
+      if (schoolSearch) schoolSearch.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSearch(); });
+      // City/location search (only on map.html)
+      if (window.location.pathname.endsWith('map.html')) {
+          const citySearchBtn = document.getElementById('city-search-btn');
+          if (citySearchBtn) citySearchBtn.addEventListener('click', handleCitySearch);
+          const citySearch = document.getElementById('city-search');
+          if (citySearch) citySearch.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleCitySearch(); });
+      }
+      // Edit Profile
+      const editProfileBtn = document.getElementById('edit-profile-btn');
+      if (editProfileBtn) editProfileBtn.addEventListener('click', openEditProfileModal);
+      const editProfileForm = document.getElementById('edit-profile-form');
+      if (editProfileForm) editProfileForm.addEventListener('submit', handleEditProfileSubmit);
+      const editProfilePicture = document.getElementById('edit-profile-picture');
+      if (editProfilePicture) editProfilePicture.addEventListener('change', handleProfilePicPreview);
+      // Profile dropdown toggle
+      const userInfo = document.getElementById('user-info');
+      const dropdown = document.getElementById('profile-dropdown');
+      if (userInfo && dropdown) {
+          userInfo.addEventListener('click', function(e) {
+              e.stopPropagation();
+              dropdown.classList.toggle('hidden');
+          });
+          document.addEventListener('click', function() {
+              dropdown.classList.add('hidden');
+          });
+      }
+  }
+
+  // Form handlers
+  async function handleLoginSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const emailInput = document.getElementById('login-email');
+      const passwordInput = document.getElementById('login-password');
+      const loginModal = document.getElementById('login-modal');
+      if (!emailInput || !passwordInput) {
+          showErrorMessage('Login form is missing required fields.');
+          return;
+      }
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      try {
+          const res = await fetch('/api/auth/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, password })
+          });
+          const data = await res.json();
+          if (res.ok && data.token) {
+              localStorage.setItem('token', data.token);
+              if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
+              console.log('[DEBUG] Login successful, redirecting to index.html');
+              window.location.href = 'index.html';
+          } else {
+              showErrorMessage(data.message || 'Login failed');
+              console.log('[DEBUG] Login failed:', data);
+          }
+      } catch (error) {
+          showErrorMessage('Login failed: ' + error.message);
+          console.error('Login error:', error);
+      }
+  }
+
+  async function handleRegister(e) {
+      e.preventDefault();
+      
+      if (isLoading) {
+          console.log('[DEBUG] Already processing registration, skipping...');
+          return;
+      }
+      
+      isLoading = true;
+      showLoadingMessage('Creating account...');
+      
+      const name = document.getElementById('register-name').value;
+      const email = document.getElementById('register-email').value;
+      const password = document.getElementById('register-password').value;
+      
+      try {
+          console.log('[DEBUG] Attempting registration for:', email);
+          const url = `${API_BASE}/auth/register`;
+          console.log('[DEBUG] Register URL:', url);
+          
+          const response = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name, email, password })
+          });
+          
+          console.log('[DEBUG] Register response status:', response.status);
+          const data = await response.json();
+          console.log('[DEBUG] Register response:', data);
+          
+          if (response.ok) {
+              localStorage.setItem('token', data.token);
+              console.log('[DEBUG] JWT token stored in localStorage');
+              const userRes = await fetch(`${API_BASE}/auth/me`, {
+                  headers: { 'Authorization': `Bearer ${data.token}` }
+              });
+              if (userRes.ok) {
+                  const user = await userRes.json();
+                  currentUser = user;
+                  localStorage.setItem('user', JSON.stringify(user));
+                  console.log('[DEBUG] User info stored in localStorage');
+                  updateUIForAuthenticatedUser(user);
+                  hideModal('register-modal');
+                  document.getElementById('register-form').reset();
+                  hideLoadingMessage();
+                  showLoadingMessage('Loading schools...');
+                  await loadSchoolsOnMap();
+                  hideLoadingMessage();
+                  if (user.isDemoUser) {
+                      sessionStorage.setItem('isDemoUser', 'true');
+                  }
+              } else {
+                  throw new Error('[DEBUG] Failed to fetch user profile after registration');
+              }
+          } else {
+              const errorMessage = data.message || 'Registration failed';
+              console.error('[DEBUG] Registration failed:', errorMessage);
+              showErrorMessage(errorMessage);
+          }
+      } catch (error) {
+          console.error('[DEBUG] Registration error:', error);
+          const errorMessage = `[DEBUG] Registration failed: ${error.message}`;
+          showErrorMessage(errorMessage);
+      } finally {
+          isLoading = false;
+          hideLoadingMessage();
+      }
+  }
+
+  async function logout() {
+      try {
+          await fetch(`${API_BASE}/auth/logout`);
+      } catch (error) {
+          console.error('Logout error:', error);
+      } finally {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          currentUser = null;
+          updateUIForUnauthenticatedUser();
+          sessionStorage.removeItem('isDemoUser');
+      }
+  }
+
+  // Search and filter functions
+  function handleSearch() {
+      const searchTerm = document.getElementById('school-search').value;
+      const category = document.getElementById('category-filter').value;
+      const minRating = document.getElementById('rating-filter').value;
+      
+      const filters = {};
+      if (searchTerm) filters.search = searchTerm;
+      if (category) filters.category = category;
+      if (minRating) filters.minRating = minRating;
+      
+      loadSchools(filters);
+  }
+
+  function handleLocation() {
+      if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+              (position) => {
+                  const lat = position.coords.latitude;
+                  const lng = position.coords.longitude;
+                  const radius = document.getElementById('radius-input').value || 10;
+                  
+                  findNearbySchools(lat, lng, radius);
+              },
+              (error) => {
+                  console.error('Geolocation error:', error);
+                  alert('Unable to get your location. Please check your browser settings.');
+              }
+          );
+      } else {
+          alert('Geolocation is not supported by this browser.');
+      }
+  }
+
+  // Utility functions
+  function scrollToSection(sectionId) {
+      const section = document.getElementById(sectionId);
+      if (section) {
+          section.scrollIntoView({ behavior: 'smooth' });
+          console.log(`Scrolled to section: ${sectionId}`);
+      } else {
+          console.warn(`Section not found: ${sectionId}`);
+      }
+  }
+
+  // Add review function
+  function showAddReviewForm(schoolId) {
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.style.display = 'flex';
+      modal.innerHTML = `
+          <div class="modal-content">
+              <h2>Add Review</h2>
+              <form id="demo-review-form">
+                  <label>Rating:</label>
+                  <select id="demo-rating">
+                      <option value="5">5</option>
+                      <option value="4">4</option>
+                      <option value="3">3</option>
+                      <option value="2">2</option>
+                      <option value="1">1</option>
+                  </select>
+                  <label>Review:</label>
+                  <textarea id="demo-review-text" required></textarea>
+                  <button type="submit" class="btn btn-primary">Submit</button>
+              </form>
+          </div>
+      `;
+      document.body.appendChild(modal);
+      document.getElementById('demo-review-form').onsubmit = function(e) {
+          e.preventDefault();
+          modal.querySelector('.modal-content').innerHTML = '<h2>Thank you for your review!</h2>';
+          setTimeout(() => modal.remove(), 1200);
+      };
+  }
+
+  async function addReview(schoolId, rating, reviewText) {
+      try {
+          const response = await fetch(`${API_BASE}/reviews/school/${schoolId}`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${localStorage.getItem('token')}`
+              },
+              body: JSON.stringify({ rating, review_text: reviewText })
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok) {
+              alert('Review added successfully!');
+              // Refresh school details
+              showSchoolDetails(schoolId);
+          } else {
+              alert(data.message || 'Failed to add review');
+          }
+      } catch (error) {
+          console.error('Error adding review:', error);
+          alert('Failed to add review. Please try again.');
+      }
+  }
+
+  // Add some CSS for map popups
+  const style = document.createElement('style');
+  style.textContent = `
+      .map-popup {
+          text-align: center;
+          min-width: 200px;
+      }
+      .map-popup h3 {
+          margin: 0 0 10px 0;
+          color: #333;
+      }
+      .map-popup p {
+          margin: 5px 0;
+          color: #666;
+      }
+      .btn-sm {
+          padding: 0.5rem 1rem;
+          font-size: 0.9rem;
+      }
+      .user-location-marker {
+          background: none;
+          border: none;
+      }
+      .review-item {
+          border-bottom: 1px solid #eee;
+          padding: 1rem 0;
+      }
+      .review-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.5rem;
+      }
+      .review-author {
+          font-weight: bold;
+          color: #667eea;
+      }
+      .review-date {
+          color: #999;
+          font-size: 0.9rem;
+      }
+      .school-detail-info p {
+          margin: 0.5rem 0;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+      }
+      .school-description {
+          margin: 1rem 0;
+          padding: 1rem;
+          background: #f8f9fa;
+          border-radius: 8px;
+      }
+      .reviews-section {
+          margin-top: 2rem;
+          padding-top: 2rem;
+          border-top: 1px solid #eee;
+      }
+      .reviews-list {
+          margin-top: 1rem;
+      }
+      .error {
+          color: #dc3545;
+          text-align: center;
+          padding: 2rem;
+      }
+      .no-results {
+          text-align: center;
+          padding: 2rem;
+          color: #666;
+      }
+      .review-avatar {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          object-fit: cover;
+          margin-right: 0.5rem;
+          vertical-align: middle;
+      }
+  `;
+  document.head.appendChild(style);
+
+  function openEditProfileModal() {
+      // Fill form with current user info
+      document.getElementById('edit-name').value = currentUser.name || '';
+      document.getElementById('edit-email').value = currentUser.email || '';
+      if (currentUser.profile_picture) {
+          document.getElementById('edit-profile-preview').src = currentUser.profile_picture;
+          document.getElementById('edit-profile-preview').classList.remove('hidden');
+      } else {
+          document.getElementById('edit-profile-preview').classList.add('hidden');
+      }
+      showModal('edit-profile-modal');
+  }
+
+  function handleProfilePicPreview(e) {
+      const file = e.target.files[0];
+      const preview = document.getElementById('edit-profile-preview');
+      if (file) {
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+              preview.src = evt.target.result;
+              preview.classList.remove('hidden');
+          };
+          reader.readAsDataURL(file);
+      } else {
+          preview.classList.add('hidden');
+      }
+  }
+
+  async function handleEditProfileSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('edit-name').value;
+      const email = document.getElementById('edit-email').value;
+      const fileInput = document.getElementById('edit-profile-picture');
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('email', email);
+      if (fileInput.files[0]) {
+          formData.append('profile_picture', fileInput.files[0]);
+      }
+      try {
+          const response = await fetch('/api/auth/profile', {
+              method: 'PUT',
+              headers: {
+                  'Authorization': `Bearer ${localStorage.getItem('token')}`
+              },
+              body: formData
+          });
+          const data = await response.json();
+          if (response.ok) {
+              // Fetch updated user info
+              const userRes = await fetch(`${API_BASE}/auth/me`, {
+                  headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+              });
+              const user = await userRes.json();
+              currentUser = user;
+              localStorage.setItem('user', JSON.stringify(user));
+              alert('Profile updated successfully!');
+              document.getElementById('user-name').textContent = user.name;
+              if (user.profile_picture) {
+                  document.getElementById('user-avatar').src = user.profile_picture;
+              }
+              hideModal('edit-profile-modal');
+          } else {
+              alert(data.message || 'Failed to update profile.');
+          }
+      } catch (error) {
+          console.error('Profile update error:', error);
+          alert('Failed to update profile.');
+      }
+  }
+
+  function toggleProfileDropdown() {
+      const dropdown = document.getElementById('profile-dropdown');
+      dropdown.classList.toggle('hidden');
+  }
+
+  function toggleTheme() {
+      const body = document.body;
+      const btn = document.getElementById('theme-toggle-btn');
+      body.classList.toggle('dark-mode');
+      const isDark = body.classList.contains('dark-mode');
+      btn.textContent = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }
+
+  // On load, set theme from localStorage
+  (function setInitialTheme() {
+      const theme = localStorage.getItem('theme');
+      if (theme === 'dark') {
+          document.body.classList.add('dark-mode');
+          const btn = document.getElementById('theme-toggle-btn');
+          if (btn) btn.textContent = 'Switch to Light Mode';
+      } else {
+          document.body.classList.remove('dark-mode');
+          const btn = document.getElementById('theme-toggle-btn');
+          if (btn) btn.textContent = 'Switch to Dark Mode';
+      }
+  })();
+
+  // Fallback: event delegation for avatar click
+  window.addEventListener('click', function(e) {
+      if (e.target.classList && e.target.classList.contains('profile-avatar-btn')) {
+          toggleProfileDropdown();
+      }
+  });
+
+  // --- DEMO USER UI/LOGIC ---
+  function handleDemoUserUI() {
+    const userInfo = document.getElementById('user-info');
+    if (userInfo && sessionStorage.getItem('isDemoUser') === 'true') {
+      // Add (Demo) tag
+      if (!document.getElementById('demo-user-tag')) {
+        const demoTag = document.createElement('span');
+        demoTag.id = 'demo-user-tag';
+        demoTag.textContent = ' (Demo)';
+        demoTag.style.color = '#2563eb';
+        demoTag.style.fontWeight = 'bold';
+        userInfo.appendChild(demoTag);
+      }
     }
-    // Prevent double initialization
-    if (window.map) {
-        window.map.invalidateSize();
-        return;
+    // Show demo banner
+    if (sessionStorage.getItem('isDemoUser') === 'true' && !document.getElementById('demo-banner')) {
+      const banner = document.createElement('div');
+      banner.id = 'demo-banner';
+      banner.textContent = "You're using a demo account.";
+      banner.style.background = '#2563eb';
+      banner.style.color = '#fff';
+      banner.style.textAlign = 'center';
+      banner.style.padding = '0.5rem';
+      banner.style.fontWeight = 'bold';
+      banner.style.position = 'fixed';
+      banner.style.top = '0';
+      banner.style.left = '0';
+      banner.style.width = '100%';
+      banner.style.zIndex = '9999';
+      document.body.appendChild(banner);
     }
-    // Ensure container is visible and has height
-    mapContainer.style.display = 'block';
-    mapContainer.style.height = '500px';
-
-    // Center map on Bhubaneswar
-    window.map = L.map('map-container').setView([20.2961, 85.8245], 13);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(window.map);
-}
-
-// Helper function to clear map error messages
-function clearMapMessages() {
-    const mapContainer = document.getElementById('map-container');
-    if (mapContainer) {
-        const existingMessages = mapContainer.querySelectorAll('.map-error, .map-no-schools');
-        existingMessages.forEach(msg => msg.remove());
+    // Disable Edit Profile and Email Verification
+    if (sessionStorage.getItem('isDemoUser') === 'true') {
+      const editBtn = document.getElementById('profile-edit-btn');
+      if (editBtn) editBtn.style.pointerEvents = 'none';
+      const verifyBtn = document.getElementById('profile-verify-btn');
+      if (verifyBtn) verifyBtn.style.pointerEvents = 'none';
     }
-}
-
-async function loadSchoolsOnMap() {
-    try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/schools`);
-        if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
-        const data = await res.json();
-        console.log('Loaded schools data:', data);
-
-        // Defensive: ensure schools is always an array
-        const schools = Array.isArray(data.schools) ? data.schools : [];
-        if (schools.length === 0) {
-            showNoSchoolsFoundOnMap(); // Show a friendly message, not an error
-            return;
-        }
-
-        // Clear existing markers if needed
-        if (window.markers) {
-            window.markers.forEach(marker => marker.remove());
-        }
-        window.markers = [];
-
-        schools.forEach(school => {
-            // Defensive: check for valid coordinates
-            if (
-                typeof school.latitude === 'number' &&
-                typeof school.longitude === 'number' &&
-                !isNaN(school.latitude) &&
-                !isNaN(school.longitude)
-            ) {
-                const marker = L.marker([school.latitude, school.longitude])
-                    .addTo(window.map)
-                    .bindPopup(`<b>${school.name}</b><br>${school.location}`);
-                window.markers.push(marker);
-            } else {
-                console.warn('Skipping school with invalid coordinates:', school);
-            }
-        });
-        // Force map to resize in case container was hidden
-        setTimeout(() => { window.map.invalidateSize(); }, 500);
-    } catch (err) {
-        console.error('Error loading map data:', err);
-        showErrorToast('Error loading schools. Please try again.');
-    }
-}
-
-function showNoSchoolsFoundOnMap() {
-    // You can customize this to show a message on the map or in the UI
-    alert('No schools found for this area.');
-}
-
-function findNearbySchools(lat, lng, radius = 10) {
-    // DEMO: Always show demo schools and markers
-    // Clear existing markers
-    markers.forEach(marker => map.removeLayer(marker));
-    markers = [];
-    const demoSchools = [
-        { id: 1, name: 'Bhubaneswar Public School', location: 'Bhubaneswar', latitude: 20.2961, longitude: 85.8245, distance: 1.2, rating: 4.5 },
-        { id: 2, name: 'DAV School', location: 'Bhubaneswar', latitude: 20.3000, longitude: 85.8200, distance: 2.1, rating: 4.2 },
-        { id: 3, name: 'KIIT International School', location: 'Bhubaneswar', latitude: 20.3100, longitude: 85.8300, distance: 3.5, rating: 4.8 },
-    ];
-    demoSchools.forEach(school => {
-        if (school.latitude && school.longitude) {
-            const marker = L.marker([school.latitude, school.longitude])
-                .bindPopup(`
-                    <div class="map-popup">
-                        <h3>${school.name}</h3>
-                        <p>${school.location}</p>
-                        <p>Distance: ${school.distance.toFixed(1)} km</p>
-                        <p>Rating: ${(school.rating || 0).toFixed(1)} ⭐</p>
-                        <button onclick="showSchoolDetails(${school.id})" class="btn btn-primary btn-sm">
-                            View Details
-                        </button>
-                    </div>
-                `);
-            marker.addTo(map);
-            markers.push(marker);
-        }
-    });
-    // Center map on user location
-    map.setView([lat, lng], 12);
-    // Add user location marker
-    const userMarker = L.marker([lat, lng], {
-        icon: L.divIcon({
-            className: 'user-location-marker',
-            html: '<i class="fas fa-user" style="color: #667eea; font-size: 20px;"></i>',
-            iconSize: [20, 20]
-        })
-    }).addTo(map);
-    markers.push(userMarker);
-}
-
-function handleCitySearch() {
-    if (!currentUser) {
-        alert('Please log in to search for schools.');
-        return;
-    }
-    const city = document.getElementById('city-search').value.trim();
-    const radius = document.getElementById('radius-input').value || 10;
-    if (!city) {
-        alert('Please enter a city or location.');
-        return;
-    }
-    // DEMO: Use dummy coordinates for any city
-    const lat = 20.2961;
-    const lng = 85.8245;
-    map.setView([lat, lng], 13);
-    findNearbySchools(lat, lng, radius);
-    document.getElementById('schools').classList.remove('hidden');
+  }
 }
 
 // Event listeners
@@ -646,7 +1290,7 @@ function setupEventListeners() {
     if (googleRegister) googleRegister.addEventListener('click', function() { window.location.href = `${API_BASE}/auth/google`; });
     // Forms
     const loginForm = document.getElementById('login-form');
-    if (loginForm) loginForm.addEventListener('submit', handleLogin);
+    if (loginForm) loginForm.addEventListener('submit', handleLoginSubmit);
     const registerForm = document.getElementById('register-form');
     if (registerForm) registerForm.addEventListener('submit', handleRegister);
     // Search
@@ -659,11 +1303,13 @@ function setupEventListeners() {
     // Search on Enter key
     const schoolSearch = document.getElementById('school-search');
     if (schoolSearch) schoolSearch.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSearch(); });
-    // City/location search
-    const citySearchBtn = document.getElementById('city-search-btn');
-    if (citySearchBtn) citySearchBtn.addEventListener('click', handleCitySearch);
-    const citySearch = document.getElementById('city-search');
-    if (citySearch) citySearch.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleCitySearch(); });
+    // City/location search (only on map.html)
+    if (window.location.pathname.endsWith('map.html')) {
+        const citySearchBtn = document.getElementById('city-search-btn');
+        if (citySearchBtn) citySearchBtn.addEventListener('click', handleCitySearch);
+        const citySearch = document.getElementById('city-search');
+        if (citySearch) citySearch.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleCitySearch(); });
+    }
     // Edit Profile
     const editProfileBtn = document.getElementById('edit-profile-btn');
     if (editProfileBtn) editProfileBtn.addEventListener('click', openEditProfileModal);
@@ -686,71 +1332,36 @@ function setupEventListeners() {
 }
 
 // Form handlers
-async function handleLogin(e) {
-    e.preventDefault();
-    
-    if (isLoading) {
-        console.log('Already processing login, skipping...');
+async function handleLoginSubmit(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const emailInput = document.getElementById('login-email');
+    const passwordInput = document.getElementById('login-password');
+    const loginModal = document.getElementById('login-modal');
+    if (!emailInput || !passwordInput) {
+        showErrorMessage('Login form is missing required fields.');
         return;
     }
-    
-    isLoading = true;
-    showLoadingMessage('Logging in...');
-    
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
     try {
-        console.log('Attempting login for:', email);
-        const url = `${API_BASE}/auth/login`;
-        console.log('Login URL:', url);
-        
-        const response = await fetch(url, {
+        const res = await fetch('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
-        
-        console.log('Login response status:', response.status);
-        const data = await response.json();
-        console.log('Login response:', data);
-        
-        if (response.ok) {
+        const data = await res.json();
+        if (res.ok && data.token) {
             localStorage.setItem('token', data.token);
-            console.log('Login successful, fetching user info...');
-            
-            // Fetch user info after login
-            const userRes = await fetch(`${API_BASE}/auth/me`, {
-                headers: { 'Authorization': `Bearer ${data.token}` }
-            });
-            
-            if (userRes.ok) {
-                const user = await userRes.json();
-                currentUser = user;
-                localStorage.setItem('user', JSON.stringify(user));
-                updateUIForAuthenticatedUser();
-                hideModal('login-modal');
-                hideLoadingMessage();
-                showLoadingMessage('Loading schools...');
-                
-                // Load schools on map after successful login
-                await loadSchoolsOnMap();
-                hideLoadingMessage();
-            } else {
-                throw new Error('Failed to fetch user profile after login');
-            }
+            if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
+            console.log('[DEBUG] Login successful, redirecting to index.html');
+            window.location.href = 'index.html';
         } else {
-            const errorMessage = data.message || 'Login failed';
-            console.error('Login failed:', errorMessage);
-            showErrorMessage(errorMessage);
+            showErrorMessage(data.message || 'Login failed');
+            console.log('[DEBUG] Login failed:', data);
         }
     } catch (error) {
+        showErrorMessage('Login failed: ' + error.message);
         console.error('Login error:', error);
-        const errorMessage = `Login failed: ${error.message}`;
-        showErrorMessage(errorMessage);
-    } finally {
-        isLoading = false;
-        hideLoadingMessage();
     }
 }
 
@@ -758,7 +1369,7 @@ async function handleRegister(e) {
     e.preventDefault();
     
     if (isLoading) {
-        console.log('Already processing registration, skipping...');
+        console.log('[DEBUG] Already processing registration, skipping...');
         return;
     }
     
@@ -770,9 +1381,9 @@ async function handleRegister(e) {
     const password = document.getElementById('register-password').value;
     
     try {
-        console.log('Attempting registration for:', email);
+        console.log('[DEBUG] Attempting registration for:', email);
         const url = `${API_BASE}/auth/register`;
-        console.log('Register URL:', url);
+        console.log('[DEBUG] Register URL:', url);
         
         const response = await fetch(url, {
             method: 'POST',
@@ -780,43 +1391,42 @@ async function handleRegister(e) {
             body: JSON.stringify({ name, email, password })
         });
         
-        console.log('Register response status:', response.status);
+        console.log('[DEBUG] Register response status:', response.status);
         const data = await response.json();
-        console.log('Register response:', data);
+        console.log('[DEBUG] Register response:', data);
         
         if (response.ok) {
             localStorage.setItem('token', data.token);
-            console.log('Registration successful, fetching user info...');
-            
-            // Fetch user info after register
+            console.log('[DEBUG] JWT token stored in localStorage');
             const userRes = await fetch(`${API_BASE}/auth/me`, {
                 headers: { 'Authorization': `Bearer ${data.token}` }
             });
-            
             if (userRes.ok) {
                 const user = await userRes.json();
                 currentUser = user;
                 localStorage.setItem('user', JSON.stringify(user));
-                updateUIForAuthenticatedUser();
+                console.log('[DEBUG] User info stored in localStorage');
+                updateUIForAuthenticatedUser(user);
                 hideModal('register-modal');
                 document.getElementById('register-form').reset();
                 hideLoadingMessage();
                 showLoadingMessage('Loading schools...');
-                
-                // Load schools on map after successful registration
                 await loadSchoolsOnMap();
                 hideLoadingMessage();
+                if (user.isDemoUser) {
+                    sessionStorage.setItem('isDemoUser', 'true');
+                }
             } else {
-                throw new Error('Failed to fetch user profile after registration');
+                throw new Error('[DEBUG] Failed to fetch user profile after registration');
             }
         } else {
             const errorMessage = data.message || 'Registration failed';
-            console.error('Registration failed:', errorMessage);
+            console.error('[DEBUG] Registration failed:', errorMessage);
             showErrorMessage(errorMessage);
         }
     } catch (error) {
-        console.error('Registration error:', error);
-        const errorMessage = `Registration failed: ${error.message}`;
+        console.error('[DEBUG] Registration error:', error);
+        const errorMessage = `[DEBUG] Registration failed: ${error.message}`;
         showErrorMessage(errorMessage);
     } finally {
         isLoading = false;
@@ -834,6 +1444,7 @@ async function logout() {
         localStorage.removeItem('user');
         currentUser = null;
         updateUIForUnauthenticatedUser();
+        sessionStorage.removeItem('isDemoUser');
     }
 }
 
@@ -1125,4 +1736,60 @@ window.addEventListener('click', function(e) {
     if (e.target.classList && e.target.classList.contains('profile-avatar-btn')) {
         toggleProfileDropdown();
     }
-}); 
+});
+
+// --- DEMO USER UI/LOGIC ---
+function handleDemoUserUI() {
+  const userInfo = document.getElementById('user-info');
+  if (userInfo && sessionStorage.getItem('isDemoUser') === 'true') {
+    // Add (Demo) tag
+    if (!document.getElementById('demo-user-tag')) {
+      const demoTag = document.createElement('span');
+      demoTag.id = 'demo-user-tag';
+      demoTag.textContent = ' (Demo)';
+      demoTag.style.color = '#2563eb';
+      demoTag.style.fontWeight = 'bold';
+      userInfo.appendChild(demoTag);
+    }
+  }
+  // Show demo banner
+  if (sessionStorage.getItem('isDemoUser') === 'true' && !document.getElementById('demo-banner')) {
+    const banner = document.createElement('div');
+    banner.id = 'demo-banner';
+    banner.textContent = "You're using a demo account.";
+    banner.style.background = '#2563eb';
+    banner.style.color = '#fff';
+    banner.style.textAlign = 'center';
+    banner.style.padding = '0.5rem';
+    banner.style.fontWeight = 'bold';
+    banner.style.position = 'fixed';
+    banner.style.top = '0';
+    banner.style.left = '0';
+    banner.style.width = '100%';
+    banner.style.zIndex = '9999';
+    document.body.appendChild(banner);
+  }
+  // Disable Edit Profile and Email Verification
+  if (sessionStorage.getItem('isDemoUser') === 'true') {
+    const editBtn = document.getElementById('profile-edit-btn');
+    if (editBtn) editBtn.style.pointerEvents = 'none';
+    const verifyBtn = document.getElementById('profile-verify-btn');
+    if (verifyBtn) verifyBtn.style.pointerEvents = 'none';
+  }
+}
+
+// On index.html page load, update UI if user is logged in
+if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname === '/index.html') {
+    document.addEventListener('DOMContentLoaded', function() {
+        const userStr = localStorage.getItem('user');
+        let user = null;
+        try {
+            user = userStr ? JSON.parse(userStr) : null;
+        } catch (e) {
+            user = null;
+        }
+        if (user) {
+            updateUIForAuthenticatedUser(user);
+        }
+    });
+} 

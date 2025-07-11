@@ -5,116 +5,123 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edit Profile - Schoolzy</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .edit-profile-container {
+      max-width: 420px;
+      margin: 3rem auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 2.5rem 2rem 2rem 2rem;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    .edit-profile-container h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: #667eea;
+    }
+    .edit-profile-form label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #4a5568;
+      font-weight: 500;
+    }
+    .edit-profile-form input[type="text"],
+    .edit-profile-form input[type="email"],
+    .edit-profile-form input[type="password"] {
+      width: 100%;
+      padding: 0.7rem;
+      margin-bottom: 1.2rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 1rem;
+      background: #f7f8fa;
+    }
+    .edit-profile-form input[type="file"] {
+      margin-bottom: 1.2rem;
+    }
+    .edit-profile-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .edit-profile-actions button {
+      flex: 1;
+      padding: 0.7rem 0;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .edit-profile-actions .save-btn {
+      background: #667eea;
+      color: #fff;
+    }
+    .edit-profile-actions .save-btn:hover {
+      background: #5a67d8;
+    }
+    .edit-profile-actions .cancel-btn {
+      background: #e2e8f0;
+      color: #2d3748;
+    }
+    .edit-profile-actions .cancel-btn:hover {
+      background: #cbd5e1;
+    }
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 1.5rem;
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 1rem;
+    }
+    .profile-pic-preview {
+      display: block;
+      margin: 0 auto 1rem auto;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #667eea;
+    }
+  </style>
 </head>
 <body>
-  <nav class="navbar">
-    <div class="nav-container">
-      <a href="index.html" class="nav-logo"><i class="fas fa-graduation-cap"></i> <span>Schoolzy</span></a>
-    </div>
-  </nav>
-  <main class="main-centered">
-    <div class="modal-content" style="margin-top: 60px;">
+  <div class="edit-profile-container">
       <h2>Edit Profile</h2>
-      <form id="edit-profile-form" class="auth-form" enctype="multipart/form-data">
-        <input type="text" id="edit-name" placeholder="Full Name" required>
-        <input type="email" id="edit-email" placeholder="Email" required>
-        <div class="profile-pic-upload">
-          <label for="edit-profile-picture">Profile Picture:</label>
-          <input type="file" id="edit-profile-picture" accept="image/*">
-          <img id="edit-profile-preview" src="" alt="Preview" class="profile-pic-preview hidden">
+    <form class="edit-profile-form" id="editProfileForm">
+      <img src="https://via.placeholder.com/80/667eea/ffffff?text=U" alt="Profile Picture" id="profilePicPreview" class="profile-pic-preview">
+      <label for="profilePic">Profile Picture</label>
+      <input type="file" id="profilePic" name="profilePic" accept="image/*">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required>
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" readonly>
+      <label for="password">New Password <span style="color:#a0aec0;font-weight:400;">(leave blank to keep current)</span></label>
+      <input type="password" id="password" name="password" placeholder="••••••••">
+      <div class="edit-profile-actions">
+        <button type="submit" class="save-btn">Save</button>
+        <button type="button" class="cancel-btn" onclick="window.location.href='index.html'">Cancel</button>
         </div>
-        <button type="submit" class="btn btn-primary">Save Changes</button>
       </form>
-      <a href="index.html" class="btn btn-outline" style="margin-top:1rem;">Back to Home</a>
+    <a href="index.html" class="back-link">&larr; Back to Home</a>
     </div>
-  </main>
-  <script src="app.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const user = localStorage.getItem('user');
-      if (!user) {
-        window.location.href = 'index.html';
-        return;
-      }
-      const userObj = JSON.parse(user);
-      document.getElementById('edit-name').value = userObj.name || '';
-      document.getElementById('edit-email').value = userObj.email || '';
-      const preview = document.getElementById('edit-profile-preview');
-      if (userObj.profile_picture) {
-        preview.src = userObj.profile_picture;
-        preview.classList.remove('hidden');
-      } else {
-        preview.classList.add('hidden');
-      }
-    });
-    document.getElementById('edit-profile-picture').addEventListener('change', function(e) {
+    // Profile picture preview
+    document.getElementById('profilePic').addEventListener('change', function(e) {
       const file = e.target.files[0];
-      const preview = document.getElementById('edit-profile-preview');
       if (file) {
         const reader = new FileReader();
         reader.onload = function(evt) {
-          preview.src = evt.target.result;
-          preview.classList.remove('hidden');
+          document.getElementById('profilePicPreview').src = evt.target.result;
         };
         reader.readAsDataURL(file);
-      } else {
-        preview.classList.add('hidden');
       }
     });
-    document.getElementById('edit-profile-form').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const name = document.getElementById('edit-name').value;
-      const email = document.getElementById('edit-email').value;
-      const fileInput = document.getElementById('edit-profile-picture');
-      const formData = new FormData();
-      formData.append('name', name);
-      formData.append('email', email);
-      if (fileInput.files[0]) {
-        formData.append('profile_picture', fileInput.files[0]);
-      }
-      try {
-        const response = await fetch('/api/auth/profile', {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: formData
-        });
-        const data = await response.json();
-        let msg = document.getElementById('profile-update-msg');
-        if (!msg) {
-          msg = document.createElement('div');
-          msg.id = 'profile-update-msg';
-          msg.style.marginTop = '1rem';
-          msg.style.fontWeight = 'bold';
-          document.querySelector('.modal-content').appendChild(msg);
-        }
-        if (response.ok) {
-          // Fetch updated user info
-          const userRes = await fetch('/api/auth/me', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-          });
-          const user = await userRes.json();
-          localStorage.setItem('user', JSON.stringify(user));
-          msg.textContent = 'Profile updated successfully!';
-          msg.style.color = '#4caf50';
-        } else {
-          msg.textContent = data.message || 'Failed to update profile.';
-          msg.style.color = '#e53935';
-        }
-      } catch (err) {
-        let msg = document.getElementById('profile-update-msg');
-        if (!msg) {
-          msg = document.createElement('div');
-          msg.id = 'profile-update-msg';
-          msg.style.marginTop = '1rem';
-          msg.style.fontWeight = 'bold';
-          document.querySelector('.modal-content').appendChild(msg);
-        }
-        msg.textContent = 'Failed to update profile.';
-        msg.style.color = '#e53935';
-      }
-    });
+    // TODO: Add JS to load current user info and handle form submission
   </script>
 </body>
 </html> 

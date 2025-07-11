@@ -3,155 +3,157 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard - Schoolzy</title>
+  <title>Admin Panel - Add School</title>
   <link rel="stylesheet" href="styles.css">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
-    .dashboard-cards { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; }
-    .dashboard-card { flex: 1 1 180px; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #0001; padding: 1.5rem; text-align: center; }
-    .dashboard-card h3 { margin: 0.5rem 0 0.2rem; font-size: 1.2rem; }
-    .dashboard-card .stat { font-size: 2rem; font-weight: bold; color: #667eea; }
-    .admin-section { margin-bottom: 2rem; }
-    .admin-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    .admin-table th, .admin-table td { padding: 0.5rem; border-bottom: 1px solid #eee; text-align: left; }
-    .admin-table th { background: #f5f6fa; }
-    .admin-table tr:last-child td { border-bottom: none; }
-    .admin-action-btn { margin-right: 0.5rem; }
-    @media (max-width: 700px) {
-      .dashboard-cards { flex-direction: column; }
-      .dashboard-card { min-width: 0; }
-      .admin-table, .admin-table th, .admin-table td { font-size: 0.95rem; }
+    .admin-form-container {
+      max-width: 480px;
+      margin: 3rem auto;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 16px rgba(80,80,120,0.10);
+      padding: 2rem 2.5rem;
+    }
+    .admin-form-container h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .admin-form label {
+      display: block;
+      margin-bottom: 0.3rem;
+      font-weight: 500;
+    }
+    .admin-form input {
+      width: 100%;
+      padding: 0.7rem;
+      margin-bottom: 1.1rem;
+      border-radius: 7px;
+      border: 1.5px solid #e2e8f0;
+      font-size: 1rem;
+      background: #f8fafc;
+    }
+    .admin-form button {
+      width: 100%;
+      padding: 0.8rem;
+      border-radius: 7px;
+      background: #667eea;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+    .admin-form button:disabled {
+      background: #b3b3b3;
+      cursor: not-allowed;
+    }
+    .admin-message {
+      text-align: center;
+      margin-bottom: 1.2rem;
+      color: #e53e3e;
+      font-weight: 500;
+    }
+    .admin-success {
+      color: #38a169;
     }
   </style>
+  <!-- Firebase App (the core Firebase SDK) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <nav class="navbar">
-    <div class="nav-container">
-      <a href="index.html" class="nav-logo"><i class="fas fa-graduation-cap"></i> <span>Schoolzy</span></a>
-      <div class="nav-menu">
-        <a href="index.html" class="nav-link">Home</a>
-        <a href="schools.html" class="nav-link">Schools</a>
-      </div>
-      <div class="nav-auth">
-        <button id="logout-btn" class="btn btn-outline">Logout</button>
-      </div>
-    </div>
-  </nav>
-  <main class="container" style="margin-top: 40px;">
-    <h1>Admin Dashboard</h1>
-    <div class="dashboard-cards" id="dashboard-cards">
-      <!-- Stats will be loaded here -->
-    </div>
-    <section class="admin-section">
-      <h2>Recent Activity</h2>
-      <div id="recent-activity">Loading...</div>
-    </section>
-    <section class="admin-section">
-      <h2>User Management</h2>
-      <div id="user-list">Loading...</div>
-    </section>
-  </main>
+  <div class="admin-form-container">
+    <h2>Add New School</h2>
+    <div id="admin-message" class="admin-message"></div>
+    <form id="add-school-form" class="admin-form" style="display:none;">
+      <label for="school-name">School Name</label>
+      <input type="text" id="school-name" required>
+      <label for="school-city">City</label>
+      <input type="text" id="school-city" required>
+      <label for="school-fee">Fee</label>
+      <input type="number" id="school-fee" min="0" required>
+      <label for="school-phone">Phone</label>
+      <input type="text" id="school-phone" required>
+      <label for="school-lat">Latitude</label>
+      <input type="number" id="school-lat" step="any" required>
+      <label for="school-lng">Longitude</label>
+      <input type="number" id="school-lng" step="any" required>
+      <button type="submit" id="submit-btn">Add School</button>
+    </form>
+  </div>
   <script>
-    // Redirect if not admin
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (!token || user.role !== 'admin') {
-      window.location.href = 'index.html';
-    }
-    const API_BASE = `${import.meta.env.VITE_API_URL}/api`;
-    document.getElementById('logout-btn').onclick = function() {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = 'index.html';
+    const firebaseConfig = {
+      apiKey: "AIzaSyDtDvdCi-sxXwZaJJfJkgs29_7QzXiivM8",
+      authDomain: "schoolzy-c28c5.firebaseapp.com",
+      projectId: "schoolzy-c28c5",
+      storageBucket: "schoolzy-c28c5.firebasestorage.app",
+      messagingSenderId: "229767328669",
+      appId: "1:229767328669:web:8beae1876e475df6213574",
+      measurementId: "G-SNE5MBVK1C"
     };
-    // Load dashboard stats
-    async function loadStats() {
-      const res = await fetch(`${API_BASE}/admin/dashboard`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const stats = await res.json();
-      document.getElementById('dashboard-cards').innerHTML = `
-        <div class="dashboard-card"><div class="stat">${stats.totalUsers}</div><h3>Users</h3></div>
-        <div class="dashboard-card"><div class="stat">${stats.totalSchools}</div><h3>Schools</h3></div>
-        <div class="dashboard-card"><div class="stat">${stats.totalReviews}</div><h3>Reviews</h3></div>
-        <div class="dashboard-card"><div class="stat">${stats.averageRating.toFixed(2)}</div><h3>Avg. Rating</h3></div>
-        <div class="dashboard-card"><div class="stat">${stats.recentReviews}</div><h3>Reviews (7d)</h3></div>
-      `;
-    }
-    // Load recent activity
-    async function loadActivity() {
-      const res = await fetch(`${API_BASE}/admin/activity`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const activity = await res.json();
-      document.getElementById('recent-activity').innerHTML = activity.length ? `
-        <table class="admin-table">
-          <tr><th>Type</th><th>User/School</th><th>Details</th><th>Time</th></tr>
-          ${activity.map(a => `
-            <tr>
-              <td>${a.type === 'user_registration' ? 'Registration' : 'Review'}</td>
-              <td>${a.type === 'user_registration' ? a.name : a.userId}</td>
-              <td>${a.type === 'user_registration' ? a.email : `${a.rating}★ - ${a.review_text}`}</td>
-              <td>${a.timestamp ? new Date(a.timestamp).toLocaleString() : ''}</td>
-            </tr>
-          `).join('')}
-        </table>
-      ` : '<p>No recent activity.</p>';
-    }
-    // Load user list
-    async function loadUsers() {
-      const res = await fetch(`${API_BASE}/admin/users`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const users = await res.json();
-      document.getElementById('user-list').innerHTML = `
-        <table class="admin-table">
-          <tr><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr>
-          ${users.map(u => `
-            <tr>
-              <td>${u.name}</td>
-              <td>${u.email}</td>
-              <td>${u.role || 'user'}</td>
-              <td>
-                ${u.role !== 'admin' ? `<button class="btn btn-primary btn-xs admin-action-btn" onclick="promoteUser('${u.id}')">Promote to Admin</button>` : `<button class="btn btn-outline btn-xs admin-action-btn" onclick="demoteUser('${u.id}')">Demote</button>`}
-                <button class="btn btn-danger btn-xs admin-action-btn" onclick="deleteUser('${u.id}')">Delete</button>
-              </td>
-            </tr>
-          `).join('')}
-        </table>
-      `;
-    }
-    // Promote/demote/delete user
-    window.promoteUser = async function(id) {
-      if (!confirm('Promote this user to admin?')) return;
-      await fetch(`${API_BASE}/admin/users/${id}/role`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: 'admin' })
-      });
-      loadUsers();
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const adminMessage = document.getElementById('admin-message');
+    const addSchoolForm = document.getElementById('add-school-form');
+    const submitBtn = document.getElementById('submit-btn');
+
+    // Check admin access
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        adminMessage.textContent = 'Please log in as an admin to access this page.';
+        addSchoolForm.style.display = 'none';
+        return;
+      }
+      // Get user role from Firestore
+      try {
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        if (userDoc.exists && userDoc.data().role === 'admin') {
+          adminMessage.textContent = '';
+          addSchoolForm.style.display = 'block';
+        } else {
+          adminMessage.textContent = 'Access denied. You are not an admin.';
+          addSchoolForm.style.display = 'none';
+        }
+      } catch (err) {
+        adminMessage.textContent = 'Error checking admin status.';
+        addSchoolForm.style.display = 'none';
+      }
+    });
+
+    // Add school to Firestore
+    addSchoolForm.onsubmit = async function(e) {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      adminMessage.textContent = '';
+      const name = document.getElementById('school-name').value.trim();
+      const city = document.getElementById('school-city').value.trim();
+      const fee = parseInt(document.getElementById('school-fee').value, 10);
+      const phone = document.getElementById('school-phone').value.trim();
+      const latitude = parseFloat(document.getElementById('school-lat').value);
+      const longitude = parseFloat(document.getElementById('school-lng').value);
+      try {
+        await db.collection('schools').add({
+          name,
+          city,
+          fee,
+          phone,
+          latitude,
+          longitude,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        adminMessage.textContent = 'School added successfully!';
+        adminMessage.classList.add('admin-success');
+        addSchoolForm.reset();
+      } catch (err) {
+        adminMessage.textContent = 'Error adding school: ' + err.message;
+        adminMessage.classList.remove('admin-success');
+      }
+      submitBtn.disabled = false;
     };
-    window.demoteUser = async function(id) {
-      if (!confirm('Demote this admin to user?')) return;
-      await fetch(`${API_BASE}/admin/users/${id}/role`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: 'user' })
-      });
-      loadUsers();
-    };
-    window.deleteUser = async function(id) {
-      if (!confirm('Delete this user? This cannot be undone.')) return;
-      await fetch(`${API_BASE}/admin/users/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      loadUsers();
-    };
-    // Initial load
-    loadStats();
-    loadActivity();
-    loadUsers();
   </script>
 </body>
 </html> 

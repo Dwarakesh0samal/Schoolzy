@@ -4,7 +4,7 @@ const { sanitizeSchools, sanitizeSchool } = require('../utils/dataSanitizer');
 // Get all schools with pagination and filtering
 const getAllSchools = async (req, res) => {
   try {
-    const { page = 1, limit = 10, category, type, rating } = req.query;
+    const { page = 1, limit = 10, category, type, rating, name } = req.query;
     let query = db.collection('schools');
 
     // Apply filters
@@ -25,7 +25,15 @@ const getAllSchools = async (req, res) => {
     }));
 
     // Sanitize all schools to ensure consistent structure
-    const schools = sanitizeSchools(rawSchools);
+    let schools = sanitizeSchools(rawSchools);
+
+    // Filter by name (case-insensitive, partial match)
+    if (name) {
+      const nameLower = name.toLowerCase();
+      schools = schools.filter(school =>
+        school.name && school.name.toLowerCase().includes(nameLower)
+      );
+    }
 
     // Apply pagination
     const startIndex = (page - 1) * limit;
@@ -300,6 +308,35 @@ const filterByType = async (req, res) => {
   }
 };
 
+// Search schools by city
+const searchByCity = async (req, res) => {
+  try {
+    const { city } = req.query;
+    if (!city) {
+      return res.status(400).json({ message: 'City parameter is required' });
+    }
+
+    const snapshot = await db.collection('schools')
+      .where('city', '>=', city)
+      .where('city', '<=', city + '\uf8ff')
+      .get();
+
+    const rawSchools = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    const schools = sanitizeSchools(rawSchools);
+
+    res.json({ schools });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error searching schools by city',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
 module.exports = {
   getAllSchools,
   getSchoolById,
@@ -309,6 +346,7 @@ module.exports = {
   deleteSchool,
   searchByLocation,
   searchByName,
+  searchByCity,
   filterByCategory,
   filterByType
 }; 

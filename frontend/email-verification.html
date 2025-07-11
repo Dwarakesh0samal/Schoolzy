@@ -5,45 +5,78 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Email Verification - Schoolzy</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .verify-container {
+      max-width: 420px;
+      margin: 4rem auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 2.5rem 2rem 2rem 2rem;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      text-align: center;
+    }
+    .verify-container h2 {
+      color: #667eea;
+      margin-bottom: 1rem;
+    }
+    .verify-container p {
+      color: #4a5568;
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+    }
+    .verify-btn {
+      background: #667eea;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.8rem 2.2rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-bottom: 1.5rem;
+    }
+    .verify-btn:hover {
+      background: #5a67d8;
+    }
+    .back-link {
+      display: block;
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 1rem;
+      margin-top: 1.2rem;
+    }
+    .verify-icon {
+      font-size: 3rem;
+      color: #667eea;
+      margin-bottom: 1rem;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
-  <nav class="navbar">
-    <div class="nav-container">
-      <a href="index.html" class="nav-logo"><i class="fas fa-graduation-cap"></i> <span>Schoolzy</span></a>
+  <div class="verify-container">
+    <div class="verify-icon">
+      <i class="fas fa-envelope-open-text"></i>
     </div>
-  </nav>
-  <main class="main-centered">
-    <div class="modal-content" style="margin-top: 60px;">
-      <h2>Email Verification</h2>
-      <p>A verification link will be sent to your email address. (Feature coming soon!)</p>
-      <button class="btn btn-primary" id="send-verification-btn">Send Verification Email</button>
-      <a href="index.html" class="btn btn-outline" style="margin-top:1rem;">Back to Home</a>
-    </div>
-  </main>
+    <h2>Email Verification</h2>
+    <p>We've sent a verification link to your email address.<br>
+      Please check your inbox and click the link to verify your account.<br>
+      Didn't receive the email?</p>
+    <button class="verify-btn" id="resendBtn">Resend Verification Email</button>
+    <div id="resendMsg" style="color:#38a169; margin-bottom:1rem; display:none;">Verification email sent!</div>
+    <a href="index.html" class="back-link">&larr; Back to Home</a>
+  </div>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const user = localStorage.getItem('user');
-      if (!user) {
-        window.location.href = 'index.html';
-        return;
-      }
-      const userObj = JSON.parse(user);
-      const emailPara = document.createElement('p');
-      emailPara.textContent = 'Your email: ' + (userObj.email || '');
-      document.querySelector('.modal-content').insertBefore(emailPara, document.getElementById('send-verification-btn'));
+    document.getElementById('resendBtn').addEventListener('click', function() {
+      // TODO: Implement resend verification email logic
+      document.getElementById('resendMsg').style.display = 'block';
+      setTimeout(() => {
+        document.getElementById('resendMsg').style.display = 'none';
+      }, 3000);
     });
-    document.getElementById('send-verification-btn').onclick = function() {
-      let msg = document.getElementById('verification-msg');
-      if (!msg) {
-        msg = document.createElement('div');
-        msg.id = 'verification-msg';
-        msg.style.marginTop = '1rem';
-        msg.style.fontWeight = 'bold';
-        document.querySelector('.modal-content').appendChild(msg);
-      }
-      msg.textContent = 'Verification email sent! (Demo)';
-      msg.style.color = '#4caf50';
-    };
   </script>
 </body>
 </html> 
