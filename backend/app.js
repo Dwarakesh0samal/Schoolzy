@@ -28,9 +28,28 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://unpkg.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://unpkg.com"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://cdnjs.cloudflare.com",
+        "https://unpkg.com",
+        "https://www.gstatic.com",
+        "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+        "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+        "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+        "https://apis.google.com" // Allow Google APIs for OAuth and Firebase
+      ],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "https://schoolzy-k8g7.onrender.com"],
+      connectSrc: [
+        "'self'",
+        "https://schoolzy-k8g7.onrender.com",
+        "https://www.googleapis.com",
+        "https://firestore.googleapis.com",
+        "https://firebase.googleapis.com",
+        "https://www.gstatic.com",
+        "https://apis.google.com",
+        "https://identitytoolkit.googleapis.com" // Allow Firebase Auth REST API
+      ],
       fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],

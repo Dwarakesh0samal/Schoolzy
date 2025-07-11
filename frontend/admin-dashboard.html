@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Panel - Add School</title>
   <link rel="stylesheet" href="styles.css">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com; script-src 'self' https://www.gstatic.com; font-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data: https://unpkg.com https://raw.githubusercontent.com https://*.tile.openstreetmap.org; connect-src 'self' https://nominatim.openstreetmap.org;">
   <style>
     .admin-form-container {
       max-width: 480px;
@@ -58,10 +59,9 @@
       color: #38a169;
     }
   </style>
-  <!-- Firebase App (the core Firebase SDK) -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- Firebase setup module must be loaded before app.js -->
+  <script type="module" src="firebase-setup.js"></script>
+  <script src="/app.js" defer></script>
 </head>
 <body>
   <div class="admin-form-container">
@@ -82,78 +82,6 @@
       <input type="number" id="school-lng" step="any" required>
       <button type="submit" id="submit-btn">Add School</button>
     </form>
-  </div>
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDtDvdCi-sxXwZaJJfJkgs29_7QzXiivM8",
-      authDomain: "schoolzy-c28c5.firebaseapp.com",
-      projectId: "schoolzy-c28c5",
-      storageBucket: "schoolzy-c28c5.firebasestorage.app",
-      messagingSenderId: "229767328669",
-      appId: "1:229767328669:web:8beae1876e475df6213574",
-      measurementId: "G-SNE5MBVK1C"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    const adminMessage = document.getElementById('admin-message');
-    const addSchoolForm = document.getElementById('add-school-form');
-    const submitBtn = document.getElementById('submit-btn');
-
-    // Check admin access
-    auth.onAuthStateChanged(async user => {
-      if (!user) {
-        adminMessage.textContent = 'Please log in as an admin to access this page.';
-        addSchoolForm.style.display = 'none';
-        return;
-      }
-      // Get user role from Firestore
-      try {
-        const userDoc = await db.collection('users').doc(user.uid).get();
-        if (userDoc.exists && userDoc.data().role === 'admin') {
-          adminMessage.textContent = '';
-          addSchoolForm.style.display = 'block';
-        } else {
-          adminMessage.textContent = 'Access denied. You are not an admin.';
-          addSchoolForm.style.display = 'none';
-        }
-      } catch (err) {
-        adminMessage.textContent = 'Error checking admin status.';
-        addSchoolForm.style.display = 'none';
-      }
-    });
-
-    // Add school to Firestore
-    addSchoolForm.onsubmit = async function(e) {
-      e.preventDefault();
-      submitBtn.disabled = true;
-      adminMessage.textContent = '';
-      const name = document.getElementById('school-name').value.trim();
-      const city = document.getElementById('school-city').value.trim();
-      const fee = parseInt(document.getElementById('school-fee').value, 10);
-      const phone = document.getElementById('school-phone').value.trim();
-      const latitude = parseFloat(document.getElementById('school-lat').value);
-      const longitude = parseFloat(document.getElementById('school-lng').value);
-      try {
-        await db.collection('schools').add({
-          name,
-          city,
-          fee,
-          phone,
-          latitude,
-          longitude,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        adminMessage.textContent = 'School added successfully!';
-        adminMessage.classList.add('admin-success');
-        addSchoolForm.reset();
-      } catch (err) {
-        adminMessage.textContent = 'Error adding school: ' + err.message;
-        adminMessage.classList.remove('admin-success');
-      }
-      submitBtn.disabled = false;
-    };
-  </script>
+    </div>
 </body>
 </html> 

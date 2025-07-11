@@ -25,6 +25,56 @@
       height: 100%;
       text-decoration: none;
     }
+    .search-box {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      background: #f8f9fa;
+      border-radius: 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 0.2rem 1rem;
+      margin: 0.5rem 0 0.5rem 0;
+    }
+    .search-box input,
+    .search-box select {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 1rem;
+      padding: 0.5rem 0.7rem;
+      border-radius: 1.2rem;
+      min-width: 100px;
+      margin: 0;
+    }
+    .search-box button {
+      background: #667eea;
+      color: #fff;
+      border: none;
+      border-radius: 1.5rem;
+      padding: 0.5rem 1.3rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.18s;
+      box-shadow: 0 1px 4px rgba(102,126,234,0.08);
+    }
+    .search-box button:hover {
+      background: #5a67d8;
+    }
+    @media (max-width: 700px) {
+      .search-box {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        padding: 0.5rem 0.5rem;
+      }
+      .search-box input,
+      .search-box select {
+        min-width: 0;
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>

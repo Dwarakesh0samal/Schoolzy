@@ -1,3 +1,4 @@
+import './firebase-setup.js';
 // Global variables
 let map;
 let currentUser = null;
@@ -5,13 +6,46 @@ let schools = [];
 let markers = [];
 
 // API base URL - use Vite env if available
-const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL)
-  ? import.meta.env.VITE_API_URL + '/api'
-  : (window.SCHOOLZY_CONFIG ? window.SCHOOLZY_CONFIG.API_BASE_URL : '/api');
+const API_BASE = (window.SCHOOLZY_CONFIG && window.SCHOOLZY_CONFIG.API_BASE_URL)
+  ? window.SCHOOLZY_CONFIG.API_BASE_URL
+  : '/api';
 console.log('[DEBUG] API_BASE:', API_BASE);
 
 // Loading state management
 let isLoading = false;
+
+// Firebase config and initialization
+if (!window.firebaseConfigInitialized) {
+  const firebaseConfig = {
+    apiKey: "AIzaSyDtDvdCi-sxXwZaJJfJkgs29_7QzXiivM8",
+    authDomain: "schoolzy-c28c5.firebaseapp.com",
+    projectId: "schoolzy-c28c5",
+    storageBucket: "schoolzy-c28c5.appspot.com",
+    messagingSenderId: "229767328669",
+    appId: "1:229767328669:web:8beae1876e475df6213574",
+    measurementId: "G-SNE5MBVK1C"
+  };
+  let firebaseApp, firebaseAuth, firebaseDb;
+  if (window.SCHOOLZY_FIREBASE) {
+    firebaseApp = window.SCHOOLZY_FIREBASE.initializeApp(firebaseConfig);
+    firebaseAuth = window.SCHOOLZY_FIREBASE.getAuth(firebaseApp);
+    firebaseDb = window.SCHOOLZY_FIREBASE.getFirestore(firebaseApp);
+  }
+  window.firebaseConfigInitialized = true;
+}
+
+// Firebase Auth and Firestore imports (assume window.SCHOOLZY_FIREBASE is set up in index.html)
+const { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } = window.SCHOOLZY_FIREBASE;
+const { getFirestore, doc, getDoc, setDoc } = window.SCHOOLZY_FIREBASE;
+const firebaseAuth = getAuth();
+const firebaseDb = getFirestore();
+
+// Helper: Get user doc from Firestore by UID
+async function getUserDoc(uid) {
+  const userRef = doc(firebaseDb, 'users', uid);
+  const userSnap = await getDoc(userRef);
+  return userSnap.exists() ? userSnap.data() : null;
+}
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
@@ -135,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Map initialization (Leaflet)
   const mapEl = document.getElementById('map-container');
-  if (mapEl) {
+  if (mapEl && typeof L !== 'undefined') {
     const map = L.map('map-container').setView([20.3, 85.8], 13);
     // Continue map setup here...
   }
@@ -358,72 +392,56 @@ async function checkAuthStatus() {
 function updateUIForAuthenticatedUser(user) {
     console.log('[DEBUG] updateUIForAuthenticatedUser called', user);
     const authButtons = document.getElementById('auth-buttons');
-    if (authButtons) {
-        authButtons.classList.add('hidden');
-    } else {
-        console.warn('#auth-buttons not found');
-    }
+    if (authButtons) authButtons.classList.add('hidden');
 
     const userInfo = document.getElementById('user-info');
-    if (userInfo) {
-        userInfo.classList.remove('hidden');
-    } else {
-        console.warn('#user-info not found');
-    }
+    if (userInfo) userInfo.classList.remove('hidden');
 
     const userName = document.getElementById('user-name');
-    if (userName) {
-        userName.textContent = user && user.name ? user.name : 'User';
-    } else {
-        console.warn('#user-name not found');
-    }
+    if (userName) userName.textContent = user && user.name ? user.name : 'User';
 
     const userAvatar = document.getElementById('user-avatar');
     if (userAvatar) {
         if (user && user.profile_picture) {
             userAvatar.src = user.profile_picture;
         } else {
-            userAvatar.src = 'default-avatar.png'; // fallback image
+            userAvatar.src = 'default-avatar.png';
         }
-    } else {
-        console.warn('#user-avatar not found');
     }
 
     const loginModal = document.getElementById('login-modal');
-    if (loginModal) {
-        loginModal.classList.add('hidden');
-    } else {
-        console.warn('#login-modal not found');
+    if (loginModal) loginModal.classList.add('hidden');
+
+    // Show admin button in navbar if user is admin
+    const adminNavLink = document.getElementById('admin-link');
+    if (adminNavLink) {
+        if (user && user.role === 'admin') {
+            adminNavLink.style.display = 'inline-block';
+            console.log('[Schoolzy] Admin button shown.');
+        } else {
+            adminNavLink.style.display = 'none';
+            console.log('[Schoolzy] Admin button hidden (not admin).');
+        }
     }
 
-    currentUser = currentUser || {};
-    userAvatar.onclick = toggleProfileDropdown;
-    // Show admin dashboard link if user is admin
+    // Profile dropdown logic (with null checks)
     const dropdown = document.getElementById('profile-dropdown');
-    let adminLink = document.getElementById('admin-dashboard-btn');
-    if (currentUser.role === 'admin') {
-        if (!adminLink) {
-            adminLink = document.createElement('button');
-            adminLink.id = 'admin-dashboard-btn';
-            adminLink.className = 'dropdown-item';
-            adminLink.textContent = 'Admin Dashboard';
-            adminLink.onclick = function(e) {
-                e.stopPropagation();
-                window.location.href = '/admin-dashboard.html';
-            };
-            dropdown.insertBefore(adminLink, dropdown.firstChild);
-        } else {
-            adminLink.classList.remove('hidden');
-        }
-    } else if (adminLink) {
-        adminLink.classList.add('hidden');
+    if (userAvatar && dropdown) {
+        userAvatar.onclick = toggleProfileDropdown;
     }
-    document.getElementById('map').classList.remove('hidden');
-    document.getElementById('schools').classList.add('hidden');
-    document.getElementById('prompt-section').classList.add('hidden');
-    
+
+    currentUser = user || {};
+
+    // Hide/show sections with null checks
+    const mapSection = document.getElementById('map');
+    if (mapSection) mapSection.classList.remove('hidden');
+    const schoolsSection = document.getElementById('schools');
+    if (schoolsSection) schoolsSection.classList.add('hidden');
+    const promptSection = document.getElementById('prompt-section');
+    if (promptSection) promptSection.classList.add('hidden');
+
     // Load schools on map after authentication
-    loadSchoolsOnMap();
+    if (typeof loadSchoolsOnMap === 'function') loadSchoolsOnMap();
 }
 
 function updateUIForUnauthenticatedUser() {
@@ -433,8 +451,8 @@ function updateUIForUnauthenticatedUser() {
     if (userInfo) userInfo.classList.add('hidden');
     currentUser = null;
     // Hide admin dashboard link if present
-    const adminLink = document.getElementById('admin-dashboard-btn');
-    if (adminLink) adminLink.classList.add('hidden');
+    const adminLink = document.getElementById('admin-link');
+    if (adminLink) adminLink.style.display = 'none';
     const schoolsSection = document.getElementById('schools');
     if (schoolsSection) schoolsSection.classList.add('hidden');
     const mapSection = document.getElementById('map');
@@ -839,23 +857,18 @@ if (window.location.pathname.endsWith('map.html')) {
       const email = emailInput.value.trim();
       const password = passwordInput.value;
       try {
-          const res = await fetch('/api/auth/login', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email, password })
-          });
-          const data = await res.json();
-          if (res.ok && data.token) {
-              localStorage.setItem('token', data.token);
-              if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
-              console.log('[DEBUG] Login successful, redirecting to index.html');
-              window.location.href = 'index.html';
-          } else {
-              showErrorMessage(data.message || 'Login failed');
-              console.log('[DEBUG] Login failed:', data);
-          }
+          const userCred = await signInWithEmailAndPassword(firebaseAuth, email, password);
+          const user = userCred.user;
+          // Fetch user doc from Firestore for role and profile
+          const userData = await getUserDoc(user.uid);
+          if (!userData) throw new Error('User profile not found in Firestore.');
+          const userObj = { ...userData, uid: user.uid, email: user.email };
+          localStorage.setItem('user', JSON.stringify(userObj));
+          // Redirect to index.html after login; UI will be updated there
+          window.location.href = 'index.html';
+          // Do NOT call updateUIForAuthenticatedUser here on login.html
       } catch (error) {
-          showErrorMessage('Login failed: ' + error.message);
+          showErrorMessage('Login failed: ' + (error.message || error.code));
           console.error('Login error:', error);
       }
   }
@@ -877,52 +890,19 @@ if (window.location.pathname.endsWith('map.html')) {
       
       try {
           console.log('[DEBUG] Attempting registration for:', email);
-          const url = `${API_BASE}/auth/register`;
-          console.log('[DEBUG] Register URL:', url);
-          
-          const response = await fetch(url, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ name, email, password })
-          });
-          
-          console.log('[DEBUG] Register response status:', response.status);
-          const data = await response.json();
-          console.log('[DEBUG] Register response:', data);
-          
-          if (response.ok) {
-              localStorage.setItem('token', data.token);
-              console.log('[DEBUG] JWT token stored in localStorage');
-              const userRes = await fetch(`${API_BASE}/auth/me`, {
-                  headers: { 'Authorization': `Bearer ${data.token}` }
-              });
-              if (userRes.ok) {
-                  const user = await userRes.json();
-                  currentUser = user;
-                  localStorage.setItem('user', JSON.stringify(user));
-                  console.log('[DEBUG] User info stored in localStorage');
-                  updateUIForAuthenticatedUser(user);
-                  hideModal('register-modal');
-                  document.getElementById('register-form').reset();
-                  hideLoadingMessage();
-                  showLoadingMessage('Loading schools...');
-                  await loadSchoolsOnMap();
-                  hideLoadingMessage();
-                  if (user.isDemoUser) {
-                      sessionStorage.setItem('isDemoUser', 'true');
-                  }
-              } else {
-                  throw new Error('[DEBUG] Failed to fetch user profile after registration');
-              }
-          } else {
-              const errorMessage = data.message || 'Registration failed';
-              console.error('[DEBUG] Registration failed:', errorMessage);
-              showErrorMessage(errorMessage);
-          }
+          const userCred = await createUserWithEmailAndPassword(firebaseAuth, email, password);
+          const user = userCred.user;
+          // Create user doc in Firestore with role: 'user'
+          const userRef = doc(firebaseDb, 'users', user.uid);
+          const userData = { name, email, role: 'user', profile_picture: '', created_at: new Date().toISOString() };
+          await setDoc(userRef, userData);
+          const userObj = { ...userData, uid: user.uid };
+          localStorage.setItem('user', JSON.stringify(userObj));
+          updateUIForAuthenticatedUser(userObj);
+          window.location.href = 'index.html';
       } catch (error) {
-          console.error('[DEBUG] Registration error:', error);
-          const errorMessage = `[DEBUG] Registration failed: ${error.message}`;
-          showErrorMessage(errorMessage);
+          showErrorMessage('Registration failed: ' + (error.message || error.code));
+          console.error('Registration error:', error);
       } finally {
           isLoading = false;
           hideLoadingMessage();
@@ -1344,23 +1324,18 @@ async function handleLoginSubmit(e) {
     const email = emailInput.value.trim();
     const password = passwordInput.value;
     try {
-        const res = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-        if (res.ok && data.token) {
-            localStorage.setItem('token', data.token);
-            if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
-            console.log('[DEBUG] Login successful, redirecting to index.html');
-            window.location.href = 'index.html';
-        } else {
-            showErrorMessage(data.message || 'Login failed');
-            console.log('[DEBUG] Login failed:', data);
-        }
+        const userCred = await signInWithEmailAndPassword(firebaseAuth, email, password);
+        const user = userCred.user;
+        // Fetch user doc from Firestore for role and profile
+        const userData = await getUserDoc(user.uid);
+        if (!userData) throw new Error('User profile not found in Firestore.');
+        const userObj = { ...userData, uid: user.uid, email: user.email };
+        localStorage.setItem('user', JSON.stringify(userObj));
+        // Redirect to index.html after login; UI will be updated there
+        window.location.href = 'index.html';
+        // Do NOT call updateUIForAuthenticatedUser here on login.html
     } catch (error) {
-        showErrorMessage('Login failed: ' + error.message);
+        showErrorMessage('Login failed: ' + (error.message || error.code));
         console.error('Login error:', error);
     }
 }
@@ -1382,52 +1357,19 @@ async function handleRegister(e) {
     
     try {
         console.log('[DEBUG] Attempting registration for:', email);
-        const url = `${API_BASE}/auth/register`;
-        console.log('[DEBUG] Register URL:', url);
-        
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password })
-        });
-        
-        console.log('[DEBUG] Register response status:', response.status);
-        const data = await response.json();
-        console.log('[DEBUG] Register response:', data);
-        
-        if (response.ok) {
-            localStorage.setItem('token', data.token);
-            console.log('[DEBUG] JWT token stored in localStorage');
-            const userRes = await fetch(`${API_BASE}/auth/me`, {
-                headers: { 'Authorization': `Bearer ${data.token}` }
-            });
-            if (userRes.ok) {
-                const user = await userRes.json();
-                currentUser = user;
-                localStorage.setItem('user', JSON.stringify(user));
-                console.log('[DEBUG] User info stored in localStorage');
-                updateUIForAuthenticatedUser(user);
-                hideModal('register-modal');
-                document.getElementById('register-form').reset();
-                hideLoadingMessage();
-                showLoadingMessage('Loading schools...');
-                await loadSchoolsOnMap();
-                hideLoadingMessage();
-                if (user.isDemoUser) {
-                    sessionStorage.setItem('isDemoUser', 'true');
-                }
-            } else {
-                throw new Error('[DEBUG] Failed to fetch user profile after registration');
-            }
-        } else {
-            const errorMessage = data.message || 'Registration failed';
-            console.error('[DEBUG] Registration failed:', errorMessage);
-            showErrorMessage(errorMessage);
-        }
+        const userCred = await createUserWithEmailAndPassword(firebaseAuth, email, password);
+        const user = userCred.user;
+        // Create user doc in Firestore with role: 'user'
+        const userRef = doc(firebaseDb, 'users', user.uid);
+        const userData = { name, email, role: 'user', profile_picture: '', created_at: new Date().toISOString() };
+        await setDoc(userRef, userData);
+        const userObj = { ...userData, uid: user.uid };
+        localStorage.setItem('user', JSON.stringify(userObj));
+        updateUIForAuthenticatedUser(userObj);
+        window.location.href = 'index.html';
     } catch (error) {
-        console.error('[DEBUG] Registration error:', error);
-        const errorMessage = `[DEBUG] Registration failed: ${error.message}`;
-        showErrorMessage(errorMessage);
+        showErrorMessage('Registration failed: ' + (error.message || error.code));
+        console.error('Registration error:', error);
     } finally {
         isLoading = false;
         hideLoadingMessage();
@@ -1787,9 +1729,13 @@ if (window.location.pathname.endsWith('index.html') || window.location.pathname 
             user = userStr ? JSON.parse(userStr) : null;
         } catch (e) {
             user = null;
+            localStorage.removeItem('user'); // Remove invalid user
+            console.warn('[Schoolzy] Invalid user object in localStorage, clearing.');
         }
-        if (user) {
+        if (user && user.role) {
             updateUIForAuthenticatedUser(user);
+        } else {
+            updateUIForUnauthenticatedUser();
         }
     });
 } 

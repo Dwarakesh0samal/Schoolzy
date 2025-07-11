@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schoolzy - Admin Dashboard</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+      }
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 20px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .logo {
+        font-size: 28px;
+        font-weight: 800;
+        color: #667eea;
+        text-decoration: none;
+      }
+      .admin-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      .admin-badge {
+        background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .logout-btn {
+        background: #f8f9fa;
+        border: 2px solid #dee2e6;
+        color: #495057;
+        padding: 10px 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 600;
+      }
+      
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+      .stats-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+      }
+      .stats-card:hover {
+        transform: translateY(-5px);
+      }
+      .stat-number {
+        font-size: 48px;
+        font-weight: 800;
+        color: #667eea;
+        display: block;
+        margin-bottom: 10px;
+      }
+      .stat-label {
+        font-size: 18px;
+        color: #666;
+        font-weight: 600;
+      }
+      .main-content {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 30px;
+      }
+      .sidebar {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        height: fit-content;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+      .nav-item {
+        display: block;
+        padding: 15px 20px;
+        margin-bottom: 10px;
+        color: #666;
+        text-decoration: none;
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        background: none;
+      }
+      .nav-item:hover, .nav-item.active {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: #fff !important;
+        box-shadow: 0 2px 12px rgba(80,80,120,0.10);
+        transform: translateX(5px);
+      }
+      .content-area {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        min-height: 600px;
+      }
+      .section {
+        display: none;
+      }
+      .section.active {
+        display: block;
+      }
+      .section-title {
+        font-size: 28px;
+        font-weight: 800;
+        color: #333;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 3px solid #667eea;
+      }
+      .form-group {
+        margin-bottom: 18px;
+      }
+      .form-label {
+        display: block;
+        margin-bottom: 7px;
+        font-weight: 600;
+        color: #333;
+        font-size: 1rem;
+      }
+      .form-input, .form-select, .form-textarea {
+        width: 100%;
+        padding: 13px 14px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1rem;
+        background: #f8fafc;
+        transition: border 0.2s, box-shadow 0.2s;
+        margin-bottom: 0;
+      }
+      .form-input:focus, .form-select:focus, .form-textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.13);
+        background: #fff;
+      }
+      .form-input::placeholder, .form-textarea::placeholder {
+        color: #b3b3b3;
+        font-size: 0.97em;
+      }
+      .form-textarea {
+        resize: vertical;
+        min-height: 90px;
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      @media (max-width: 600px) {
+        .form-row { grid-template-columns: 1fr; gap: 0; }
+        .modal-content {
+          padding: 16px 4vw;
+          max-height: 95vh;
+        }
+      }
+      .btn {
+        padding: 13px 28px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(80,80,120,0.04);
+      }
+      .btn-primary {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: #fff;
+        border: none;
+      }
+      .btn-primary:hover {
+        background: linear-gradient(45deg, #5a67d8, #764ba2);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.13);
+      }
+      .btn-secondary {
+        background: #f8f9fa;
+        color: #495057;
+        border: 1.5px solid #dee2e6;
+      }
+      .btn-secondary:hover {
+        background: #e9ecef;
+        transform: translateY(-2px);
+      }
+      .modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+      .modal.active { display: flex; }
+      .modal-content {
+        background: #fff;
+        border-radius: 22px;
+        padding: 36px 32px 28px 32px;
+        max-width: 540px;
+        width: 95vw;
+        box-shadow: 0 12px 48px rgba(80,80,120,0.18);
+        position: relative;
+        animation: modalFadeIn 0.25s cubic-bezier(.4,0,.2,1);
+        max-height: 90vh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+      }
+      @keyframes modalFadeIn {
+        from { opacity: 0; transform: translateY(30px) scale(0.98);}
+        to   { opacity: 1; transform: translateY(0) scale(1);}
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        border-bottom: 1.5px solid #e9ecef;
+        padding-bottom: 10px;
+      }
+      .modal-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #333;
+        letter-spacing: -0.5px;
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
+      }
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 2rem;
+        cursor: pointer;
+        color: #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, color 0.2s;
+      }
+      .close-btn:hover {
+        background: #f0f4fa;
+        color: #ee5a52;
+      }
+      #addSchoolForm {
+        margin-top: 10px;
+      }
+      #addSchoolForm .form-section-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: #667eea;
+        text-align: left;
+      }
+      #addSchoolForm .form-section-desc {
+        font-size: 0.98rem;
+        color: #666;
+        margin-bottom: 1.2rem;
+        text-align: left;
+      }
+      .alert {
+         padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; font-weight: 600; }
+      .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+      .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+      @media (max-width: 1024px) {
+        .main-content { grid-template-columns: 1fr; }
+        .sidebar { order: 2; width: 100%; margin-bottom: 20px; padding: 18px; }
+        .content-area { padding: 18px; }
+        .dashboard-grid { grid-template-columns: 1fr 1fr; gap: 18px; }
+      }
+      @media (max-width: 768px) {
+        .dashboard-grid { grid-template-columns: 1fr; gap: 14px; }
+        .main-content { grid-template-columns: 1fr; }
+        .sidebar { width: 100%; margin-bottom: 16px; padding: 12px; }
+        .content-area { padding: 12px; }
+        .form-row { grid-template-columns: 1fr; gap: 0; }
+        .header { flex-direction: column; gap: 14px; text-align: center; padding: 12px 6px; }
+        .modal-content { padding: 12px 2vw; width: 99vw; }
+        .stats-card { padding: 16px; font-size: 0.95rem; }
+        .section-title { font-size: 1.1rem; padding-bottom: 8px; margin-bottom: 18px; }
+      }
+      @media (max-width: 480px) {
+        .container { padding: 4px; }
+        .header { padding: 8px 2px; font-size: 1rem; }
+        .logo { font-size: 1.1rem; }
+        .admin-badge { font-size: 11px; padding: 4px 8px; }
+        .logout-btn { padding: 6px 10px; font-size: 0.95rem; }
+        .dashboard-grid { gap: 8px; }
+        .stats-card { padding: 8px; font-size: 0.95rem; }
+        .main-content { gap: 8px; }
+        .sidebar { padding: 6px; }
+        .content-area { padding: 6px; }
+        .modal-content { padding: 6px 1vw; }
+        .form-label, .form-input, .form-select, .form-textarea { font-size: 0.97rem; }
+        .btn, .btn-primary, .btn-secondary { font-size: 0.97rem; padding: 10px 12px; }
+      }
+      .schools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 18px;
+        margin-top: 32px;
+      }
+      .school-card {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(80,80,120,0.08);
+        padding: 1.2rem 1.2rem 1rem 1.2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        position: relative;
+      }
+      .school-card-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+        color: #333;
+      }
+      .school-card-city {
+        font-size: 0.97rem;
+        color: #667eea;
+        margin-bottom: 0.5rem;
+      }
+      .school-card-actions {
+        margin-top: 0.7rem;
+        display: flex;
+        gap: 10px;
+      }
+      .delete-btn {
+        background: #ff6b6b;
+        color: #fff;
+        border: none;
+        border-radius: 7px;
+        padding: 7px 16px;
+        font-size: 0.97rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.18s;
+      }
+      .delete-btn:hover {
+        background: #ee5a52;
+      }
+      /* Reuse .schools-grid and .school-card for cities */
+      .city-card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem; color: #333; }
+      .city-card-country { font-size: 0.97rem; color: #667eea; margin-bottom: 0.5rem; font-weight: 500; }
+      .admin-table-container {
+        width: 100%;
+        overflow-x: auto;
+        margin-top: 32px;
+      }
+      table.admin-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(80,80,120,0.08);
+        overflow: hidden;
+        font-size: 1rem;
+      }
+      .admin-table th, .admin-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #e9ecef;
+        text-align: left;
+      }
+      .admin-table th {
+        background: #f7f8fa;
+        font-weight: 700;
+        color: #333;
+      }
+      .admin-table tr:last-child td {
+        border-bottom: none;
+      }
+      .ban-btn {
+        background: #ffb347;
+        color: #fff;
+        border: none;
+        border-radius: 7px;
+        padding: 7px 16px;
+        font-size: 0.97rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.18s;
+      }
+      .ban-btn.banned {
+        background: #ff6b6b;
+      }
+      .ban-btn:not(.banned):hover {
+        background: #f7b731;
+      }
+      .ban-btn.banned:hover {
+        background: #ee5a52;
+      }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <a href="#" class="logo">🎓 Schoolzy Admin</a>
+            <div class="admin-info">
+                <span class="admin-badge">Administrator</span>
+                <span id="adminName">Admin</span>
+            </div>
+        </header>
+        <div class="dashboard-grid">
+            <div class="stats-card">
+                <span class="stat-number" id="totalSchools">0</span>
+                <span class="stat-label">Total Schools</span>
+            </div>
+            <div class="stats-card">
+                <span class="stat-number" id="totalReviews">0</span>
+                <span class="stat-label">Total Reviews</span>
+            </div>
+            <div class="stats-card">
+                <span class="stat-number" id="totalUsers">0</span>
+                <span class="stat-label">Total Users</span>
+            </div>
+            <div class="stats-card">
+                <span class="stat-number" id="totalCities">0</span>
+                <span class="stat-label">Cities Covered</span>
+            </div>
+        </div>
+        <div class="main-content">
+            <nav class="sidebar">
+                <button class="nav-item active" id="nav-schools">🏫 Manage Schools</button>
+                <button class="nav-item" id="nav-cities">🏙️ Manage Cities</button>
+                <button class="nav-item" id="nav-reviews">⭐ Manage Reviews</button>
+                <button class="nav-item" id="nav-users">👥 Manage Users</button>
+            </nav>
+            <main class="content-area">
+                <div id="schools" class="section active">
+                    <h2 class="section-title">Manage Schools</h2>
+                    <button class="btn btn-primary" id="add-school-btn">Add New School</button>
+                    <div id="schoolsGrid" class="schools-grid"></div>
+                </div>
+                <!-- Manage Cities Section -->
+                <div id="cities" class="section">
+                    <h2 class="section-title">Manage Cities</h2>
+                    <button class="btn btn-primary" id="add-city-btn">Add New City</button>
+                    <div id="citiesGrid" class="schools-grid"></div>
+                </div>
+                <!-- Manage Reviews Section -->
+                <div id="reviews" class="section">
+                    <h2 class="section-title">Manage Reviews</h2>
+                    <div id="reviewsTable" class="admin-table-container"></div>
+                </div>
+                <!-- Manage Users Section -->
+                <div id="users" class="section">
+                    <h2 class="section-title">Manage Users</h2>
+                    <div id="usersTable" class="admin-table-container"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <!-- Add School Modal -->
+    <div id="addSchoolModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New School</h3>
+                <button class="close-btn" id="close-add-school-modal">&times;</button>
+            </div>
+            <form id="addSchoolForm">
+                <div class="form-section-title">Add a New School</div>
+                <div class="form-section-desc">Fill in the details below to add a new school to the Schoolzy database.</div>
+                <div id="formAlert"></div>
+                <div class="form-group">
+                    <label class="form-label">School Name</label>
+                    <input type="text" class="form-input" name="name" required placeholder="e.g. Delhi Public School">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" name="category" required>
+                            <option value="">Select Category</option>
+                            <option value="CBSE">CBSE</option>
+                            <option value="ICSE">ICSE</option>
+                            <option value="State Board">State Board</option>
+                            <option value="International">International</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">City</label>
+                        <input type="text" class="form-input" name="city" required placeholder="e.g. Mumbai">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <textarea class="form-textarea" name="address" required placeholder="Full address of the school"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Latitude</label>
+                        <input type="number" class="form-input" name="latitude" step="any" required placeholder="e.g. 19.0760">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Longitude</label>
+                        <input type="number" class="form-input" name="longitude" step="any" required placeholder="e.g. 72.8777">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Fee</label>
+                        <input type="text" class="form-input" name="fee" required placeholder="e.g. ₹50,000/year">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input type="text" class="form-input" name="phone" placeholder="e.g. +91 9876543210">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Website</label>
+                    <input type="url" class="form-input" name="website" placeholder="e.g. https://schoolwebsite.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-textarea" name="description" placeholder="Short description about the school"></textarea>
+                </div>
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button type="submit" class="btn btn-primary">➕ Add School</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-add-school-modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Add City Modal -->
+    <div id="addCityModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New City</h3>
+                <button class="close-btn" id="close-add-city-modal">&times;</button>
+            </div>
+            <form id="addCityForm">
+                <div id="cityFormAlert"></div>
+                <div class="form-group">
+                    <label class="form-label">City Name</label>
+                    <input type="text" class="form-input" name="name" required placeholder="e.g. Mumbai">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">State/Province</label>
+                    <input type="text" class="form-input" name="state" required placeholder="e.g. Maharashtra">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Country</label>
+                    <input type="text" class="form-input" name="country" required placeholder="e.g. India">
+                </div>
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button type="submit" class="btn btn-primary">➕ Add City</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-add-city-modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Firebase SDKs v10 -->
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+      import { getFirestore, collection, addDoc, serverTimestamp, getCountFromServer, getDocs, deleteDoc, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+      // Replace with your config
+      const firebaseConfig = {
+        apiKey: "AIzaSyDtDvdCi-sxXwZaJJfJkgs29_7QzXiivM8",
+        authDomain: "schoolzy-c28c5.firebaseapp.com",
+        projectId: "schoolzy-c28c5",
+        storageBucket: "schoolzy-c28c5.appspot.com",
+        messagingSenderId: "229767328669",
+        appId: "1:229767328669:web:8beae1876e475df6213574",
+        measurementId: "G-SNE5MBVK1C"
+      };
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      // Modal logic
+      window.showAddSchoolModal = function() {
+        document.getElementById('addSchoolModal').classList.add('active');
+        document.getElementById('formAlert').innerHTML = '';
+      }
+      window.closeModal = function(id) {
+        document.getElementById(id).classList.remove('active');
+      }
+      // Add School form logic
+      const addSchoolForm = document.getElementById('addSchoolForm');
+      addSchoolForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const data = {
+          name: form.name.value.trim(),
+          category: form.category.value.trim(),
+          city: form.city.value.trim(),
+          address: form.address.value.trim(),
+          latitude: parseFloat(form.latitude.value),
+          longitude: parseFloat(form.longitude.value),
+          fee: form.fee.value.trim(),
+          phone: form.phone.value.trim(),
+          website: form.website.value.trim(),
+          description: form.description.value.trim(),
+          createdAt: serverTimestamp()
+        };
+        try {
+          await addDoc(collection(db, 'schools'), data);
+          document.getElementById('formAlert').innerHTML = '<div class="alert alert-success">School added successfully!</div>';
+          form.reset();
+          loadSchoolsGrid(); // Reload grid after adding
+          updateStats();
+        } catch (err) {
+          document.getElementById('formAlert').innerHTML = '<div class="alert alert-error">Error: ' + err.message + '</div>';
+        }
+      });
+      // Modal logic for Add City
+      window.showAddCityModal = function() {
+        document.getElementById('addCityModal').classList.add('active');
+        document.getElementById('cityFormAlert').innerHTML = '';
+      }
+      // Add City form logic
+      const addCityForm = document.getElementById('addCityForm');
+      if (addCityForm) {
+        addCityForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const form = e.target;
+          const data = {
+            name: form.name.value.trim(),
+            state: form.state.value.trim(),
+            country: form.country.value.trim()
+          };
+          try {
+            await addDoc(collection(db, 'cities'), data);
+            document.getElementById('cityFormAlert').innerHTML = '<div class="alert alert-success">City added successfully!</div>';
+            form.reset();
+            // Update cities stat and grid
+            updateStats();
+            loadCitiesGrid();
+          } catch (err) {
+            document.getElementById('cityFormAlert').innerHTML = '<div class="alert alert-error">Error: ' + err.message + '</div>';
+          }
+        });
+      }
+      // Dashboard stats (schools, reviews, users, cities)
+      async function updateStats() {
+        const schoolsSnap = await getCountFromServer(collection(db, 'schools'));
+        document.getElementById('totalSchools').textContent = schoolsSnap.data().count;
+
+        // Fetch reviews count from Firestore
+        const reviewsSnap = await getCountFromServer(collection(db, 'review'));
+        document.getElementById('totalReviews').textContent = reviewsSnap.data().count;
+
+        // Fetch users count from Firestore
+        const usersSnap = await getCountFromServer(collection(db, 'users'));
+        document.getElementById('totalUsers').textContent = usersSnap.data().count;
+
+        // Fetch cities count from Firestore
+        const citiesSnap = await getCountFromServer(collection(db, 'cities'));
+        document.getElementById('totalCities').textContent = citiesSnap.data().count;
+      }
+      updateStats();
+      // Placeholder logout
+      window.logout = function() { alert('Logout not implemented.'); };
+      // Section switching logic (add reviews and users)
+      window.showSection = function(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+        if (id === 'schools') {
+          document.getElementById('nav-schools').classList.add('active');
+          loadSchoolsGrid();
+        }
+        if (id === 'cities') {
+          document.getElementById('nav-cities').classList.add('active');
+          loadCitiesGrid();
+        }
+        if (id === 'reviews') {
+          document.getElementById('nav-reviews').classList.add('active');
+          loadReviewsTable();
+        }
+        if (id === 'users') {
+          document.getElementById('nav-users').classList.add('active');
+          loadUsersTable();
+        }
+      }
+
+      // Fetch and render all reviews in a table
+      async function loadReviewsTable() {
+        const tableDiv = document.getElementById('reviewsTable');
+        tableDiv.innerHTML = '<div style="text-align:center;padding:2rem;">Loading reviews...</div>';
+        try {
+          const querySnapshot = await getDocs(collection(db, 'review'));
+          const reviews = [];
+          querySnapshot.forEach(doc => {
+            reviews.push({ id: doc.id, ...doc.data() });
+          });
+          if (reviews.length === 0) {
+            tableDiv.innerHTML = '<div style="text-align:center;color:#888;">No reviews found.</div>';
+            return;
+          }
+          tableDiv.innerHTML = `
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>School</th>
+                  <th>User</th>
+                  <th>Rating</th>
+                  <th>Text</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${reviews.map(r => `
+                  <tr>
+                    <td>${r.schoolId || ''}</td>
+                    <td>${r.user_name || r.userId || ''}</td>
+                    <td>${r.rating || ''}</td>
+                    <td>${r.review_text || ''}</td>
+                    <td><button class="delete-btn" onclick="deleteReview('${r.id}')">Delete</button></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+        } catch (err) {
+          tableDiv.innerHTML = '<div style="color:#e53e3e;">Error loading reviews.</div>';
+        }
+      }
+      window.deleteReview = async function(id) {
+        if (!confirm('Are you sure you want to delete this review?')) return;
+        try {
+          await deleteDoc(doc(db, 'review', id));
+          loadReviewsTable();
+          updateStats();
+        } catch (err) {
+          alert('Error deleting review: ' + err.message);
+        }
+      }
+
+      // Fetch and render all users in a table
+      async function loadUsersTable() {
+        const tableDiv = document.getElementById('usersTable');
+        tableDiv.innerHTML = '<div style="text-align:center;padding:2rem;">Loading users...</div>';
+        try {
+          const querySnapshot = await getDocs(collection(db, 'users'));
+          const users = [];
+          querySnapshot.forEach(doc => {
+            users.push({ id: doc.id, ...doc.data() });
+          });
+          if (users.length === 0) {
+            tableDiv.innerHTML = '<div style="text-align:center;color:#888;">No users found.</div>';
+            return;
+          }
+          tableDiv.innerHTML = `
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Banned</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${users.map(u => `
+                  <tr>
+                    <td>${u.name || ''}</td>
+                    <td>${u.email || ''}</td>
+                    <td>${u.role || ''}</td>
+                    <td>${u.banned ? 'Yes' : 'No'}</td>
+                    <td><button class="ban-btn${u.banned ? ' banned' : ''}" onclick="toggleBanUser('${u.id}', ${!!u.banned})">${u.banned ? 'Unban' : 'Ban'}</button></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+        } catch (err) {
+          tableDiv.innerHTML = '<div style="color:#e53e3e;">Error loading users.</div>';
+        }
+      }
+      window.toggleBanUser = async function(id, isBanned) {
+        try {
+          const userRef = doc(db, 'users', id);
+          await updateDoc(userRef, { banned: !isBanned });
+          loadUsersTable();
+        } catch (err) {
+          alert('Error updating user: ' + err.message);
+        }
+      }
+      // Fetch and render all schools in a grid
+      async function loadSchoolsGrid() {
+        const grid = document.getElementById('schoolsGrid');
+        grid.innerHTML = '<div style="text-align:center;padding:2rem;">Loading schools...</div>';
+        try {
+          const querySnapshot = await getDocs(collection(db, 'schools'));
+          const schools = [];
+          querySnapshot.forEach(doc => {
+            schools.push({ id: doc.id, ...doc.data() });
+          });
+          if (schools.length === 0) {
+            grid.innerHTML = '<div style="text-align:center;color:#888;">No schools found.</div>';
+            return;
+          }
+          grid.innerHTML = schools.map(school => `
+            <div class="school-card">
+              <div class="school-card-title">${school.name || 'Unnamed School'}</div>
+              <div class="school-card-city">${school.city || ''}</div>
+              <div style="font-size:0.95rem;color:#555;">${school.category || ''}</div>
+              <div class="school-card-actions">
+                <button class="delete-btn" onclick="deleteSchool('${school.id}')">Delete</button>
+              </div>
+            </div>
+          `).join('');
+        } catch (err) {
+          grid.innerHTML = '<div style="color:#e53e3e;">Error loading schools.</div>';
+        }
+      }
+      window.deleteSchool = async function(id) {
+        if (!confirm('Are you sure you want to delete this school?')) return;
+        try {
+          await deleteDoc(doc(db, 'schools', id));
+          loadSchoolsGrid();
+          updateStats();
+        } catch (err) {
+          alert('Error deleting school: ' + err.message);
+        }
+      }
+      // Fetch and render all cities in a grid
+      async function loadCitiesGrid() {
+        const grid = document.getElementById('citiesGrid');
+        grid.innerHTML = '<div style="text-align:center;padding:2rem;">Loading cities...</div>';
+        try {
+          const querySnapshot = await getDocs(collection(db, 'cities'));
+          const cities = [];
+          querySnapshot.forEach(doc => {
+            cities.push({ id: doc.id, ...doc.data() });
+          });
+          if (cities.length === 0) {
+            grid.innerHTML = '<div style="text-align:center;color:#888;">No cities found.</div>';
+            return;
+          }
+          grid.innerHTML = cities.map(city => `
+            <div class="school-card">
+              <div class="city-card-title">${city.name || 'Unnamed City'}</div>
+              <div class="city-card-country">${city.country || ''}</div>
+              <div style="font-size:0.95rem;color:#555;">${city.state || ''}</div>
+              <div class="school-card-actions">
+                <button class="delete-btn" onclick="deleteCity('${city.id}')">Delete</button>
+              </div>
+            </div>
+          `).join('');
+        } catch (err) {
+          grid.innerHTML = '<div style="color:#e53e3e;">Error loading cities.</div>';
+        }
+      }
+      window.deleteCity = async function(id) {
+        if (!confirm('Are you sure you want to delete this city?')) return;
+        try {
+          await deleteDoc(doc(db, 'cities', id));
+          loadCitiesGrid();
+          updateStats();
+        } catch (err) {
+          alert('Error deleting city: ' + err.message);
+        }
+      }
+      // Load schools grid on page load
+      loadSchoolsGrid();
+
+      // Add event listeners for navigation and modals
+      document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('logout-btn')?.addEventListener('click', logout);
+        document.getElementById('nav-schools')?.addEventListener('click', () => showSection('schools'));
+        document.getElementById('nav-cities')?.addEventListener('click', () => showSection('cities'));
+        document.getElementById('nav-reviews')?.addEventListener('click', () => showSection('reviews'));
+        document.getElementById('nav-users')?.addEventListener('click', () => showSection('users'));
+        document.getElementById('add-school-btn')?.addEventListener('click', showAddSchoolModal);
+        document.getElementById('add-city-btn')?.addEventListener('click', showAddCityModal);
+        document.getElementById('close-add-school-modal')?.addEventListener('click', () => closeModal('addSchoolModal'));
+        document.getElementById('cancel-add-school-modal')?.addEventListener('click', () => closeModal('addSchoolModal'));
+        document.getElementById('close-add-city-modal')?.addEventListener('click', () => closeModal('addCityModal'));
+        document.getElementById('cancel-add-city-modal')?.addEventListener('click', () => closeModal('addCityModal'));
+      });
+    </script>
+</body>
+</html> 

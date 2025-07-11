@@ -104,7 +104,7 @@
       <input type="password" id="password" name="password" placeholder="••••••••">
       <div class="edit-profile-actions">
         <button type="submit" class="save-btn">Save</button>
-        <button type="button" class="cancel-btn" onclick="window.location.href='index.html'">Cancel</button>
+        <button type="button" class="cancel-btn" id="cancel-btn">Cancel</button>
         </div>
       </form>
     <a href="index.html" class="back-link">&larr; Back to Home</a>
@@ -120,6 +120,10 @@
         };
         reader.readAsDataURL(file);
       }
+    });
+    // Cancel button navigation
+    document.getElementById('cancel-btn').addEventListener('click', function() {
+      window.location.href = 'index.html';
     });
     // TODO: Add JS to load current user info and handle form submission
   </script>

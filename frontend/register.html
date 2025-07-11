@@ -17,25 +17,7 @@
       <div class="auth-extra">Already have an account? <a class="auth-link" href="login.html">Login here</a></div>
     </form>
   </div>
-  <script>
-    document.getElementById('register-form').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const name = document.getElementById('register-name').value;
-      const email = document.getElementById('register-email').value;
-      const password = document.getElementById('register-password').value;
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        alert('Registration successful! Please login.');
-        window.location.href = 'login.html';
-      } else {
-        alert(data.message || 'Registration failed');
-      }
-    });
-  </script>
+  <!-- Remove the inline script that posts to /api/auth/register. Registration is handled by app.js -->
+  <script type="module" src="/app.js"></script>
 </body>
 </html> 
